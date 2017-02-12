@@ -19,7 +19,7 @@ int main()
 	if(connect(clientFileDescriptor,(struct sockaddr*)&sock_var,sizeof(sock_var))>=0)
 	{
 		printf("Connected to server %dn",clientFileDescriptor);
-		printf("nEnter Srting to send");
+		printf("nEnter String to send");
 		scanf("%s",str_clnt);
 		write(clientFileDescriptor,str_clnt,20);
 		read(clientFileDescriptor,str_ser,20);
