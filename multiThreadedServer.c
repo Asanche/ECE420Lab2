@@ -37,25 +37,22 @@ void* ServerDecide(void *args)
 
     int clientFileDescriptor = (int)args;
     printf("Connected to client %d\n", clientFileDescriptor);
-    char readOrWrite[1];
+    char stringToWrite[MAX_STRING_LENGTH];
     char arrayElement[16];
 
-    read(clientFileDescriptor, readOrWrite, 1);
     read(clientFileDescriptor, arrayElement, 16);
-
-    printf("Yo.... %s", readOrWrite);
-    if(strcmp(readOrWrite,"R"))
+    read(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
+    
+    if(strlen(stringToWrite) == 0)
     {
         printf("Reading element %s\n", arrayElement);
         write(clientFileDescriptor, ReadString(atoi(arrayElement)), MAX_STRING_LENGTH);
     }
-    // else if(strcmp(readOrWrite,"W"))
-    // {
-    //     char stringToWrite[MAX_STRING_LENGTH];
-    //     read(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
-    //     printf("Writing \"%s\" to element %s\n", stringToWrite, arrayElement);
-    //     WriteString(atoi(arrayElement), stringToWrite);
-    // }
+    else
+    {
+        printf("Writing \"%s\" to element %s\n", stringToWrite, arrayElement);
+        WriteString(atoi(arrayElement), stringToWrite);
+    }
 
     close(clientFileDescriptor);
 }

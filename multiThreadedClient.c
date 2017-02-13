@@ -6,7 +6,7 @@
 
 int* seed;
 
-char* ReadOrWrite()
+int ReadOrWrite()
 {
     /*
         === DESCRIPTION ===
@@ -20,12 +20,11 @@ char* ReadOrWrite()
         if rand() produces a value of 1-5 (5%). We simply use this fact to 
         say we should only write if readOrWrite is 96-100
     */
-    srand(time(NULL));
     int readOrWrite = (rand() % 100 + READ_PERCENTAGE) % 100;
     if(readOrWrite <= READ_PERCENTAGE){
-        return "R";
+        return 0;
     }
-    else return "W";
+    else return 1;
 }
 
 void* ClientAction(void *args)
@@ -36,39 +35,39 @@ void* ClientAction(void *args)
     sock_var.sin_family = AF_INET;
 
     int clientFileDescriptor = socket(AF_INET, SOCK_STREAM, 0);
-    printf("socket: %d", clientFileDescriptor);
+    printf("Socket: %d\n", clientFileDescriptor);
 
     if(connect(clientFileDescriptor, (struct sockaddr*)&sock_var,sizeof(sock_var)) >= 0)
     {
         srand((int)args);
 
         printf("Connected to server %d \n", clientFileDescriptor);
-        char* readOrWrite = "R";//ReadOrWrite();
-        write(clientFileDescriptor, readOrWrite, 1);
-        printf("Wrote %s \n", readOrWrite);
+        int readOrWrite = ReadOrWrite();
 
         char element[16];
         sprintf(element, "%d", rand() % ARRAY_SIZE);
-        printf("Wrote %s\n", element);
+        printf("Element %s\n", element);
         
         write(clientFileDescriptor, element, 16);
 
-        // if(strcmp(readOrWrite, "W"))
-        // {
-        //     char stringToWrite[MAX_STRING_LENGTH] = "HI MOM";
-        //     write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
-        //     printf("Wrote %s\n", stringToWrite);
-        // }
-        // else if(strcmp(readOrWrite, "R"))
-        // {
-        //     char str_ser[MAX_STRING_LENGTH];
-        //     read(clientFileDescriptor, str_ser, MAX_STRING_LENGTH);
-        //     printf("String from Server: \"%s\"\n", str_ser);
-        // }
+        printf("Read or Write? %d\n", readOrWrite);
+        if(readOrWrite)
+        {
+            char stringToWrite[MAX_STRING_LENGTH] = "HI MOM";
+            write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
+            printf("Wrote %s\n", stringToWrite);
+        }
+        else
+        {
+            write(clientFileDescriptor, "", MAX_STRING_LENGTH);
+            char str_ser[MAX_STRING_LENGTH];
+            read(clientFileDescriptor, str_ser, MAX_STRING_LENGTH);
+            printf("String from Server: \"%s\"\n", str_ser);
+        }
 
-        char str_ser[MAX_STRING_LENGTH];
-        read(clientFileDescriptor, str_ser, MAX_STRING_LENGTH);
-        printf("String from Server: \"%s\"\n", str_ser);
+        // char str_ser[MAX_STRING_LENGTH];
+        // read(clientFileDescriptor, str_ser, MAX_STRING_LENGTH);
+        // printf("String from Server: \"%s\"\n", str_ser);
         close(clientFileDescriptor);
         pthread_exit(NULL);
     }
