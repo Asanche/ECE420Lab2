@@ -63,8 +63,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    int port = argv[1];
-    int arraySize = argv[2];
+    int port = atoi(argv[1]);
+    int arraySize = atoi(argv[2]);
 
     //Initialize the strings appropriately
     for(int i = 0; i < arraySize; i++)

@@ -83,8 +83,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    port = argv[1];
-    arraySize = argv[2];
+    port = atoi(argv[1]);
+    arraySize = atoi(argv[2]);
 
     int threadCount = atoi(argv[1]);
     pthread_t t[THREAD_COUNT];
