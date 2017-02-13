@@ -1,10 +1,26 @@
+/*
+    === DESCRIPTION ===
+    The server simply listens for client requests that are either
+    read or write, and either reads or writes to an element
+    in the array of strings that it holds specified by the 
+    client
+*/
 #include "multiThreadedCS.h"
 
-char theArray[ARRAY_SIZE][MAX_STRING_LENGTH];
-pthread_mutex_t mutex;
+// === GLOBAL VARIABLES ===
+char theArray[ARRAY_SIZE][MAX_STRING_LENGTH]; // The array of strings held in memory for the client to read or write to
+pthread_mutex_t mutex; // The mutex that prevents race conditions b/w threads
 
 char* ReadString(int element)
-{
+{/*
+    === DESCRIPTION ===
+    This is the read function. It uses a mutex to ensure no other reads or writes
+    occurr simultaneously. It simply returns the value read at a specified element
+    in the array
+
+    === PARAMETERS ===
+    int element - the element of the array to read
+*/
     pthread_mutex_lock(&mutex); 
     char* readString = theArray[element];
     printf("Read \"%s\" from element %d\n", readString, element);
@@ -13,7 +29,15 @@ char* ReadString(int element)
 }
 
 void WriteString(int element, char* string)
-{
+{/*
+    === DESCRIPTION ===
+    This is the write function. It uses a mutex to ensure that no other writes
+    or reads occur simultaneously.
+
+    === PARAMETERS ===
+    int element - the element of the array to write to
+    char* string - the string to write to that element
+*/
     pthread_mutex_lock(&mutex); 
     strcpy(theArray[element], string);
     printf("Wrote \"%s\" to element %d\n", string, element);
@@ -24,15 +48,15 @@ void* ServerDecide(void *args)
 {
     /* 
     === DESCRIPTION ===
-        This function is responsible for deciding whether a request
-        is a read or a write request. It reads three strings from the
-        clientFileDescriptor into three strings each on a new line 
-        representing the desired action (R/W), the element the with 
-        which to read or write and, if it is a write, the string they 
-        wish to write to that element
+    This function is responsible for deciding whether a request
+    is a read or a write request. It reads three strings from the
+    clientFileDescriptor into three strings each on a new line 
+    representing the desired action (R/W), the element the with 
+    which to read or write and, if it is a write, the string they 
+    wish to write to that element
         
     === PARAMETERS ===
-        void* args - this is the input file from the client
+    void* args - this is the input file from the client
     */
 
     int clientFileDescriptor = (int)args;
@@ -56,7 +80,30 @@ void* ServerDecide(void *args)
 }
 
 int main(int argc, char* argv[])
-{
+{/*
+    === DESCRIPTION ===
+    This is the main function for the server. It listens for clients
+    trying to connect, and connects with them on one of 20 threads.
+    It then reads which element they are trying to read or write to,
+    then reads again, and checks the length of the string. If it 
+    has a length of 0, it is a read, otherwise it writes whatever
+    it just read to that element
+
+    expects an input from the command linee like so:
+    ./client <port> <arraySize>
+    
+    === PARAMETERS ===
+    int argc - number of command line variables input.
+    char* argv[] - input variables from the command line
+
+    === COMMAND LINE ARGUMENTS ===
+    argv[1] - Port to connect to (ususally 3000)
+    argv[2] - The size of the server's array of strings
+    
+    === OUTPUTS ===
+    1 - failure
+    0 - ran to completion
+*/
     if(argc != 3)
     {
         printf("please use the format ./server <port> <arraySize>");

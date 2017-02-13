@@ -8,5 +8,5 @@
 #include<pthread.h>
 #include<string.h>
 
-#define MAX_STRING_LENGTH 1024
-#define ARRAY_SIZE 1024
+// === CONSTANTS ===
+#define MAX_STRING_LENGTH 1024 //The maximum length of string tha can e held in the server's list
