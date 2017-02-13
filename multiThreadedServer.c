@@ -11,7 +11,7 @@
 char** theArray; // The array of strings held in memory for the client to read or write to
 pthread_mutex_t mutex; // The mutex that prevents race conditions b/w threads
 
-freeArray(int arraySize)
+void freeArray(int arraySize)
 {
     for(int i = 0; i < arraySize; i++)
     {
