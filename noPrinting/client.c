@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
     }
     GET_TIME(end);
     
-    printf("EXECUTION TIME: %e\n", end - start);
+    printf("EXECUTION TIME: %lf\n", end - start);
 
     return 0;
 }

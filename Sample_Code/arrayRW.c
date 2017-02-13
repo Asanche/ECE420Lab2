@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
 		pthread_join(thread_handles[thread], NULL); 
 	GET_TIME(finish);
 	elapsed = finish - start;	
- 	printf("The elapsed time is %e seconds\n", elapsed);
+ 	printf("The elapsed time is %lf seconds\n", elapsed);
    
 	pthread_mutex_destroy(&mutex);
 	free(thread_handles);
