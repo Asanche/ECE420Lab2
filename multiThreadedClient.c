@@ -53,7 +53,8 @@ void* ClientAction(void *args)
         printf("Read or Write? %d\n", readOrWrite);
         if(readOrWrite)
         {
-            char stringToWrite[MAX_STRING_LENGTH] = "HI MOM";
+            char stringToWrite[MAX_STRING_LENGTH];
+            sprintf(stringToWrite, "String %d has been modified by a write request", element);
             write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
             printf("Wrote %s\n", stringToWrite);
         }
