@@ -27,8 +27,6 @@ pthread_mutex_t mutex;
 
 void *Operate(void* rank);  /* Thread function */
 
-
-
 /*--------------------------------------------------------------------*/
 int main(int argc, char* argv[]) {
 	long       thread;  /* Use long in case of a 64-bit system */

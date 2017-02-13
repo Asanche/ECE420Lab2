@@ -36,28 +36,29 @@ void* ServerDecide(void *args)
     */
 
     int clientFileDescriptor = (int)args;
+    printf("Connected to client %d\n", clientFileDescriptor);
     char readOrWrite[1];
     char arrayElement[16];
 
     read(clientFileDescriptor, readOrWrite, 1);
     read(clientFileDescriptor, arrayElement, 16);
 
+    printf("Yo.... %s", readOrWrite);
     if(strcmp(readOrWrite,"R"))
     {
         printf("Reading element %s\n", arrayElement);
         write(clientFileDescriptor, ReadString(atoi(arrayElement)), MAX_STRING_LENGTH);
     }
-    else if(strcmp(readOrWrite,"W"))
-    {
-        char stringToWrite[MAX_STRING_LENGTH];
-        read(clientFileDescriptor, readOrWrite, 1);
-        printf("Writing \"%s\" to element %s\n", stringToWrite, arrayElement);
-        WriteString(atoi(arrayElement), stringToWrite);
-    }
+    // else if(strcmp(readOrWrite,"W"))
+    // {
+    //     char stringToWrite[MAX_STRING_LENGTH];
+    //     read(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
+    //     printf("Writing \"%s\" to element %s\n", stringToWrite, arrayElement);
+    //     WriteString(atoi(arrayElement), stringToWrite);
+    // }
 
     close(clientFileDescriptor);
 }
-
 
 int main()
 {
@@ -74,7 +75,7 @@ int main()
 
     pthread_mutex_init(&mutex, NULL);
 
-    pthread_t t[1000];
+    pthread_t t[20];
 
     sock_var.sin_addr.s_addr = inet_addr("127.0.0.1");
     sock_var.sin_port = 3000;
@@ -84,12 +85,11 @@ int main()
     {
         printf("Socket has been created\n");
         listen(serverFileDescriptor,2000); 
-        while(1)        //loop infinity
+        while(1)//loop infinitely
         {
-            for(i = 0; i < 1000; i++)      //can support 20 clients at a time
+            for(i = 0; i < 20; i++)
             {
-                clientFileDescriptor=accept(serverFileDescriptor, NULL, NULL);
-                printf("Connected to client %d\n", clientFileDescriptor);
+                clientFileDescriptor = accept(serverFileDescriptor, NULL, NULL);
                 pthread_create(&t[i], NULL, ServerDecide, (void *)clientFileDescriptor);
             }
         }
