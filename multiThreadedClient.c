@@ -54,7 +54,7 @@ void* ClientAction(void *args)
         if(readOrWrite)
         {
             char stringToWrite[MAX_STRING_LENGTH];
-            sprintf(stringToWrite, "String %d has been modified by a write request", element);
+            sprintf(stringToWrite, "String %s has been modified by a write request", element);
             write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
             printf("Wrote %s\n", stringToWrite);
         }
