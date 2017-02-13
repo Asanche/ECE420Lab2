@@ -8,8 +8,17 @@
 #include "multiThreadedCS.h"
 
 // === GLOBAL VARIABLES ===
-char theArray[ARRAY_SIZE][MAX_STRING_LENGTH]; // The array of strings held in memory for the client to read or write to
+char** theArray; // The array of strings held in memory for the client to read or write to
 pthread_mutex_t mutex; // The mutex that prevents race conditions b/w threads
+
+freeArray(int arraySize)
+{
+    for(int i = 0; i < arraySize; i++)
+    {
+        free(theArray[i])
+    }
+    free(theArray)
+}
 
 char* ReadString(int element)
 {/*
@@ -113,6 +122,13 @@ int main(int argc, char* argv[])
     int port = atoi(argv[1]);
     int arraySize = atoi(argv[2]);
 
+    //Malloc the array
+    theArray = (char**)malloc(sizeof(char*) * arraySize);
+    for(int i = 0; i < arraySize; i++)
+    {
+        theArray[i] = (char*)malloc(sizeof(char) * MAX_STRING_LENGTH);
+    }
+
     //Initialize the strings appropriately
     for(int i = 0; i < arraySize; i++)
     {
@@ -150,5 +166,7 @@ int main(int argc, char* argv[])
     {
         printf("Socket creation failed\n");
     }
+
+    freeArray(arraySize);
     return 0;
 }
