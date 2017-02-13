@@ -4,8 +4,8 @@
     array, and randomly decides to read or write to them with a 95:5 ratio.
 */
 
-#include "multiThreadedCS.h"
-#include "timer.h"
+#include "../multiThreadedCS.h"
+#include "../timer.h"
 
 // === CONSTANTS ===
 #define WRITE_PERCENTAGE 5 //The percentage of requests that are writes
@@ -58,7 +58,6 @@ void* ClientAction(void *args)
     {
         srand((int)args);
 
-        printf("Connected to server %d \n", clientFileDescriptor);
         
         char element[16];
         sprintf(element, "%d", rand() % arraySize);
@@ -71,14 +70,12 @@ void* ClientAction(void *args)
             char stringToWrite[MAX_STRING_LENGTH];
             sprintf(stringToWrite, "String %s has been modified by a write request", element);
             write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
-            printf("Wrote %s\n", stringToWrite);
         }
         else
         {
             write(clientFileDescriptor, "", MAX_STRING_LENGTH);
             char str_ser[MAX_STRING_LENGTH];
             read(clientFileDescriptor, str_ser, MAX_STRING_LENGTH);
-            printf("String from Server: \"%s\"\n", str_ser);
         }
 
         close(clientFileDescriptor);
@@ -139,7 +136,7 @@ int main(int argc, char* argv[])
     }
     GET_TIME(end);
     
-    printf("EXECUTION TIME: %d\n", (end - start));
+    printf("EXECUTION TIME: %e\n", end - start);
 
     return 0;
 }

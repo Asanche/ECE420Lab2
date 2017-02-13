@@ -5,7 +5,7 @@
     in the array of strings that it holds specified by the 
     client
 */
-#include "multiThreadedCS.h"
+#include "../multiThreadedCS.h"
 
 // === GLOBAL VARIABLES ===
 char** theArray; // The array of strings held in memory for the client to read or write to
@@ -32,7 +32,6 @@ char* ReadString(int element)
 */
     pthread_mutex_lock(&mutex); 
     char* readString = theArray[element];
-    printf("Read \"%s\" from element %d\n", readString, element);
     pthread_mutex_unlock(&mutex);
     return readString;
 }
@@ -49,7 +48,6 @@ void WriteString(int element, char* string)
 */
     pthread_mutex_lock(&mutex); 
     strcpy(theArray[element], string);
-    printf("Wrote \"%s\" to element %d\n", string, element);
     pthread_mutex_unlock(&mutex);
 }
 
@@ -69,7 +67,6 @@ void* ServerDecide(void *args)
     */
 
     int clientFileDescriptor = (int)args;
-    printf("Connected to client %d\n", clientFileDescriptor);
     char stringToWrite[MAX_STRING_LENGTH];
     char arrayElement[16];
 
@@ -142,7 +139,6 @@ int main(int argc, char* argv[])
 
     pthread_mutex_init(&mutex, NULL);
 
-
     pthread_t t[TRHEAD_COUNT];
 
     sock_var.sin_addr.s_addr = inet_addr("127.0.0.1");
@@ -151,7 +147,6 @@ int main(int argc, char* argv[])
     
     if(bind(serverFileDescriptor, (struct sockaddr*)&sock_var,sizeof(sock_var)) >= 0)
     {
-        printf("Socket has been created\n");
         listen(serverFileDescriptor,2000); 
         while(1) //loop infinitely
         {

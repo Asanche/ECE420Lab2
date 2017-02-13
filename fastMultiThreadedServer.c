@@ -6,10 +6,20 @@
     client
 */
 #include "multiThreadedCS.h"
+#define TRHEAD_COUNT 1000
+
+typedef struct {
+    int readers;
+    int writer;
+    pthread_cond_t readers_proceed;
+    pthread_cond_t writer_proceed;
+    int pending_writers;
+    pthread_mutex_t read_write_lock;
+} rwlock_t;
 
 // === GLOBAL VARIABLES ===
 char** theArray; // The array of strings held in memory for the client to read or write to
-pthread_mutex_t mutex; // The mutex that prevents race conditions b/w threads
+rwlock_t rwl; // The mutex that prevents race conditions b/w threads
 
 void freeArray(int arraySize)
 {
@@ -18,6 +28,72 @@ void freeArray(int arraySize)
         free(theArray[i]);
     }
     free(theArray);
+}
+
+void rwlockInit (rwlock_t* rwl) {
+    rwl -> readers = rwl -> writer = rwl -> pending_writers = 0;
+    pthread_mutex_init(&(rwl -> read_write_lock), NULL);
+    pthread_cond_init(&(rwl -> readers_proceed), NULL);
+    pthread_cond_init(&(rwl -> writer_proceed), NULL);
+}
+
+void readLock(rwlock_t* rwl) {
+    /* if there is a write lock or pending writers, perform
+    condition wait, else increment count of readers and grant
+    read lock */
+    pthread_mutex_lock(&(rwl -> read_write_lock));
+
+    while ((rwl -> pending_writers > 0) || (rwl -> writer > 0))
+    {
+        pthread_cond_wait(&(rwl -> readers_proceed), &(rwl -> read_write_lock));
+    }
+
+    rwl -> readers++;
+    pthread_mutex_unlock(&(rwl -> read_write_lock));
+}
+
+void writeLock(rwlock_t* rwl) {
+    /* if there are readers or writers, increment pending
+    writers count and wait. On being woken, decrement pending
+    writers count and increment writer count */
+    pthread_mutex_lock(&(rwl -> read_write_lock));
+
+    while ((rwl -> writer > 0) || (rwl -> readers > 0)) {
+        rwl -> pending_writers++;
+        pthread_cond_wait(&(rwl -> writer_proceed), &(rwl -> read_write_lock));
+        rwl -> pending_writers--;
+    }
+
+    rwl -> writer++;
+    pthread_mutex_unlock(&(rwl -> read_write_lock));
+}
+
+void rwUnlock(rwlock_t* rwl) {
+    /* if there is a write lock then unlock, else if there
+    are read locks, decrement count of read locks. If the count
+    is 0 and there is a pending writer, let it through, else if
+    there are pending readers, let them all go through */
+    pthread_mutex_lock(&(rwl -> read_write_lock));
+
+    if (rwl -> writer > 0)
+    {
+        rwl -> writer = 0;
+    }
+    else if (rwl -> readers > 0)
+    {
+        rwl -> readers--;
+    }
+
+    pthread_mutex_unlock(&(rwl -> read_write_lock));
+
+    if ((rwl -> readers == 0) && (rwl -> pending_writers > 0))
+    {
+        pthread_cond_signal(&(rwl -> writer_proceed));
+    }
+    else if (rwl -> readers > 0)
+    {
+        pthread_cond_broadcast(&(rwl -> readers_proceed));
+    }
 }
 
 char* ReadString(int element)
@@ -30,10 +106,10 @@ char* ReadString(int element)
     === PARAMETERS ===
     int element - the element of the array to read
 */
-    pthread_mutex_lock(&mutex); 
+    readLock(&rwl); 
     char* readString = theArray[element];
     printf("Read \"%s\" from element %d\n", readString, element);
-    pthread_mutex_unlock(&mutex);
+    rwUnlock(&rwl);
     return readString;
 }
 
@@ -47,10 +123,10 @@ void WriteString(int element, char* string)
     int element - the element of the array to write to
     char* string - the string to write to that element
 */
-    pthread_mutex_lock(&mutex); 
+    writeLock(&rwl); 
     strcpy(theArray[element], string);
     printf("Wrote \"%s\" to element %d\n", string, element);
-    pthread_mutex_unlock(&mutex);
+    rwUnlock(&rwl);
 }
 
 void* ServerDecide(void *args)
@@ -140,8 +216,7 @@ int main(int argc, char* argv[])
     int clientFileDescriptor;
     int i;
 
-    pthread_mutex_init(&mutex, NULL);
-
+    rwlockInit(&rwl);
 
     pthread_t t[TRHEAD_COUNT];
 
@@ -153,7 +228,7 @@ int main(int argc, char* argv[])
     {
         printf("Socket has been created\n");
         listen(serverFileDescriptor,2000); 
-        while(1) //loop infinitely
+        while(1)//loop infinitely
         {
             for(i = 0; i < TRHEAD_COUNT; i++)
             {
