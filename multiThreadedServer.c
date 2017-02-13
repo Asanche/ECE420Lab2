@@ -1,31 +1,23 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<sys/types.h>
-#include<sys/socket.h>
-#include<netinet/in.h>
-#include<arpa/inet.h>
-#include<unistd.h>
-#include<pthread.h>
+#include "multiThreadedCS.h"
 
-#define MAX_STRING_LENGTH = 128
-
-char** theArray;
-int arraySize = 100;
-
+char theArray[ARRAY_SIZE][MAX_STRING_LENGTH];
+pthread_mutex_t mutex;
 
 char* ReadString(int element)
 {
-    //mutex lock
+    pthread_mutex_lock(&mutex); 
     char* readString = theArray[element];
-    //mutex unlock
+    printf("Read \"%s\"\n", readString);
+    pthread_mutex_unlock(&mutex);
     return readString;
 }
 
 void WriteString(int element, char* string)
 {
-    //mutex lock
-    theArray[element] = string;
-    //mutex unlock
+    pthread_mutex_lock(&mutex); 
+    strcpy(theArray[element], string);
+    printf("Wrote %s\n", string);
+    pthread_mutex_unlock(&mutex);
 }
 
 void* ServerDecide(void *args)
@@ -44,48 +36,45 @@ void* ServerDecide(void *args)
     */
 
     int clientFileDescriptor = (int)args;
-    char[1] readOrWrite;
-    char[16] arrayElement;
+    char readOrWrite[1];
+    char arrayElement[16];
 
     read(clientFileDescriptor, readOrWrite, 1);
     read(clientFileDescriptor, arrayElement, 16);
 
-    if(readOrWrite == 'R')
+    if(strcmp(readOrWrite,"R"))
     {
-        write(clientFileDescriptor, ReadString(atoi(arrayElement)), 20);
-        printf("echoing back to client");
-        
+        printf("Reading element %s\n", arrayElement);
+        write(clientFileDescriptor, ReadString(atoi(arrayElement)), MAX_STRING_LENGTH);
     }
-    else if(readOrWrite == 'W')
+    else if(strcmp(readOrWrite,"W"))
     {
-        char[MAX_STRING_LENGTH] stringToWrite;
+        char stringToWrite[MAX_STRING_LENGTH];
         read(clientFileDescriptor, readOrWrite, 1);
-        WriteString(stringToWrite);
+        printf("Writing \"%s\" to element %s\n", stringToWrite, arrayElement);
+        WriteString(atoi(arrayElement), stringToWrite);
     }
 
     close(clientFileDescriptor);
-    // printf("reading from client: %s", str);
-    // write(clientFileDescriptor, str, 20);
-    // printf("echoing back to client");
-    // close(clientFileDescriptor);
 }
 
 
 int main()
 {
-    //Malloc and initialize the strings appropriately
-    theArray = (char**)malloc(sizeof(char*) * arraySize);
-    for(int i = 0; i < arraySize; i++)
+    //Initialize the strings appropriately
+    for(int i = 0; i < ARRAY_SIZE; i++)
     {
-        theArray[i] = malloc(sizeof(char) * MAX_STRING_LENGTH);
-        sprintf(theArray[i], "String %d: the initial value", i)
+        sprintf(theArray[i], "String %d: the initial value", i);
     }
 
     struct sockaddr_in sock_var;
     int serverFileDescriptor = socket(AF_INET,SOCK_STREAM, 0);
     int clientFileDescriptor;
     int i;
-    pthread_t t[20];
+
+    pthread_mutex_init(&mutex, NULL);
+
+    pthread_t t[1000];
 
     sock_var.sin_addr.s_addr = inet_addr("127.0.0.1");
     sock_var.sin_port = 3000;
@@ -93,22 +82,22 @@ int main()
     
     if(bind(serverFileDescriptor, (struct sockaddr*)&sock_var,sizeof(sock_var)) >= 0)
     {
-        printf("nsocket has been created");
+        printf("Socket has been created\n");
         listen(serverFileDescriptor,2000); 
         while(1)        //loop infinity
         {
             for(i = 0; i < 1000; i++)      //can support 20 clients at a time
             {
                 clientFileDescriptor=accept(serverFileDescriptor, NULL, NULL);
-                printf("nConnected to client %dn", clientFileDescriptor);
-                pthread_create(&t, NULL, ServerDecide, (void *)clientFileDescriptor);
+                printf("Connected to client %d\n", clientFileDescriptor);
+                pthread_create(&t[i], NULL, ServerDecide, (void *)clientFileDescriptor);
             }
         }
         close(serverFileDescriptor);
     }
     else
     {
-        printf("nsocket creation failed");
+        printf("Socket creation failed\n");
     }
     return 0;
 }

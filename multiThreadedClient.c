@@ -1,15 +1,10 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<sys/types.h>
-#include<sys/socket.h>
-#include<netinet/in.h>
-#include<arpa/inet.h>
-#include<unistd.h>
+#include "multiThreadedCS.h"
+#include <time.h>
 
-#define WRITE_PERCENTAGE = 5
-#define READ_PERCENTAGE = 95
+#define WRITE_PERCENTAGE 5
+#define READ_PERCENTAGE 95
 
-int ReadOrWrite()
+char* ReadOrWrite()
 {
     /*
         === DESCRIPTION ===
@@ -25,17 +20,22 @@ int ReadOrWrite()
     */
     int readOrWrite =  (rand() % 100 + READ_PERCENTAGE) % 100;
     if(readOrWrite <= READ_PERCENTAGE){
-        return 0;
+        return "R";
     }
-    else return 1;
+    else return "W";
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+    srand(time(NULL));
     struct sockaddr_in sock_var;
     int clientFileDescriptor = socket(AF_INET, SOCK_STREAM, 0);
-    int threadCount;
-    char str_ser[20];
+    if(argc != 2)
+    {
+        printf("You did not input a valid # of theads! Please run this as ./client <threads>");
+    }
+
+    int threadCount = atoi(argv[1]);
 
     sock_var.sin_addr.s_addr = inet_addr("127.0.0.1");
     sock_var.sin_port = 3000;
@@ -43,17 +43,25 @@ int main()
 
     if(connect(clientFileDescriptor, (struct sockaddr*)&sock_var,sizeof(sock_var)) >= 0)
     {
-        printf("Connected to server %dn", clientFileDescriptor);
-        printf("Enter a number of threads to randomly read or write to the server");
-        scanf("%d", threadCount);
-        write(clientFileDescriptor, str_clnt, 20);
-        read(clientFileDescriptor, str_ser, 20);
-        printf("String from Server: %s", str_ser);
+        printf("Connected to server %d \n", clientFileDescriptor);
+        char* readOrWrite = "R";//ReadOrWrite();
+        write(clientFileDescriptor, readOrWrite, 1);
+        printf("Wrote %s \n", readOrWrite);
+
+        char element[16];
+        sprintf(element, "%d", rand() % ARRAY_SIZE);
+        printf("Wrote %s\n", element);
+        
+        write(clientFileDescriptor, element, 16);
+
+        char str_ser[MAX_STRING_LENGTH];
+        read(clientFileDescriptor, str_ser, MAX_STRING_LENGTH);
+        printf("String from Server: \"%s\"\n", str_ser);
         close(clientFileDescriptor);
     }
     else
     {
-        printf("socket creation failed");
+        printf("socket creation failed\n");
     }
 
     return 0;
