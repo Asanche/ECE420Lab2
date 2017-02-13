@@ -5,8 +5,7 @@
     in the array of strings that it holds specified by the 
     client
 */
-#include "multiThreadedCS.h"
-#define TRHEAD_COUNT 1000
+#include "../service.h"
 
 typedef struct {
     int readers;
@@ -108,7 +107,6 @@ char* ReadString(int element)
 */
     readLock(&rwl); 
     char* readString = theArray[element];
-    printf("Read \"%s\" from element %d\n", readString, element);
     rwUnlock(&rwl);
     return readString;
 }
@@ -125,7 +123,6 @@ void WriteString(int element, char* string)
 */
     writeLock(&rwl); 
     strcpy(theArray[element], string);
-    printf("Wrote \"%s\" to element %d\n", string, element);
     rwUnlock(&rwl);
 }
 
@@ -145,7 +142,6 @@ void* ServerDecide(void *args)
     */
 
     int clientFileDescriptor = (int)args;
-    printf("Connected to client %d\n", clientFileDescriptor);
     char stringToWrite[MAX_STRING_LENGTH];
     char arrayElement[16];
 
@@ -214,11 +210,10 @@ int main(int argc, char* argv[])
     struct sockaddr_in sock_var;
     int serverFileDescriptor = socket(AF_INET,SOCK_STREAM, 0);
     int clientFileDescriptor;
-    int i;
 
     rwlockInit(&rwl);
 
-    pthread_t t[TRHEAD_COUNT];
+    pthread_t t[THREAD_COUNT];
 
     sock_var.sin_addr.s_addr = inet_addr("127.0.0.1");
     sock_var.sin_port = port;
@@ -226,11 +221,10 @@ int main(int argc, char* argv[])
     
     if(bind(serverFileDescriptor, (struct sockaddr*)&sock_var,sizeof(sock_var)) >= 0)
     {
-        printf("Socket has been created\n");
         listen(serverFileDescriptor,2000); 
         while(1)//loop infinitely
         {
-            for(i = 0; i < TRHEAD_COUNT; i++)
+            for(int i = 0; i < THREAD_COUNT; i++)
             {
                 clientFileDescriptor = accept(serverFileDescriptor, NULL, NULL);
                 pthread_create(&t[i], NULL, ServerDecide, (void *)clientFileDescriptor);

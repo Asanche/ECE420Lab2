@@ -10,4 +10,4 @@
 
 // === CONSTANTS ===
 #define MAX_STRING_LENGTH 1024 //The maximum length of string tha can e held in the server's list
-#define TRHEAD_COUNT 1000 //The amount of threads used
+#define THREAD_COUNT 1000 //The amount of threads used

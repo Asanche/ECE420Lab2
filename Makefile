@@ -4,26 +4,26 @@ fast: client fastServer
 noP: noPClient noPServer
 noPFast: noPClient noPFastServer
 
-client: multiThreadedClient.c  multiThreadedCS.h
-	gcc -std=c99 multiThreadedClient.c multiThreadedCS.h -o client -lpthread
+client: client.c  service.h
+	gcc -std=c99 client.c service.h -o client -lpthread
 
-server: multiThreadedServer.c multiThreadedCS.h
-	gcc -std=c99 multiThreadedServer.c multiThreadedCS.h -o server -lpthread
+server: server.c service.h
+	gcc -std=c99 server.c service.h -o server -lpthread
 
-fastServer: fastMultiThreadedServer.c multiThreadedCS.h
-	gcc -std=c99 fastMultiThreadedServer.c multiThreadedCS.h -o fastServer -lpthread
+fastServer: fastServer.c service.h
+	gcc -std=c99 fastServer.c service.h -o fastServer -lpthread
 
-noPClient: multiThreadedClient.c  multiThreadedCS.h
-	gcc -std=c99 noPrinting/multiThreadedClient.c multiThreadedCS.h -o noPClient -lpthread
+noPClient: client.c  service.h
+	gcc -std=c99 noPrinting/client.c service.h -o noPClient -lpthread
 
-noPServer: multiThreadedServer.c multiThreadedCS.h
-	gcc -std=c99 noPrinting/multiThreadedServer.c multiThreadedCS.h -o noPServer -lpthread
+noPServer: server.c service.h
+	gcc -std=c99 noPrinting/server.c service.h -o noPServer -lpthread
 
-noPFastServer: fastMultiThreadedServer.c multiThreadedCS.h
-	gcc -std=c99 noPrinting/fastMultiThreadedServer.c multiThreadedCS.h -o noPFastServer -lpthread
+noPFastServer: fastServer.c service.h
+	gcc -std=c99 noPrinting/fastServer.c service.h -o noPFastServer -lpthread
 
-zip: readme.txt members.txt Makefile multiThreadedClient.c multiThreadedServer.c multiThreadedCS.h
-	zip 1393331-H42.zip readme.txt members.txt Makefile multiThreadedClient.c multiThreadedServer.c multiThreadedCS.h
+zip: readme.txt members.txt Makefile client.c server.c service.h
+	zip 1393331-H42.zip readme.txt members.txt Makefile client.c server.c service.h
 
 clean:
 	rm -rf *.o *.exe *.zip

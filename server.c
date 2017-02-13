@@ -5,7 +5,7 @@
     in the array of strings that it holds specified by the 
     client
 */
-#include "multiThreadedCS.h"
+#include "service.h"
 
 // === GLOBAL VARIABLES ===
 char** theArray; // The array of strings held in memory for the client to read or write to
@@ -138,12 +138,11 @@ int main(int argc, char* argv[])
     struct sockaddr_in sock_var;
     int serverFileDescriptor = socket(AF_INET,SOCK_STREAM, 0);
     int clientFileDescriptor;
-    int i;
 
     pthread_mutex_init(&mutex, NULL);
 
 
-    pthread_t t[TRHEAD_COUNT];
+    pthread_t t[THREAD_COUNT];
 
     sock_var.sin_addr.s_addr = inet_addr("127.0.0.1");
     sock_var.sin_port = port;
@@ -155,7 +154,7 @@ int main(int argc, char* argv[])
         listen(serverFileDescriptor,2000); 
         while(1) //loop infinitely
         {
-            for(i = 0; i < TRHEAD_COUNT; i++)
+            for(int i = 0; i < THREAD_COUNT; i++)
             {
                 clientFileDescriptor = accept(serverFileDescriptor, NULL, NULL);
                 pthread_create(&t[i], NULL, ServerDecide, (void *)clientFileDescriptor);

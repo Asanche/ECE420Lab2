@@ -4,7 +4,7 @@
     array, and randomly decides to read or write to them with a 95:5 ratio.
 */
 
-#include "../multiThreadedCS.h"
+#include "../service.h"
 #include "../timer.h"
 
 // === CONSTANTS ===
