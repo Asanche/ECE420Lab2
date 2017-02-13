@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
     it just read to that element
 
     expects an input from the command linee like so:
-    ./client <port> <arraySize>
+    ./server <port> <arraySize>
     
     === PARAMETERS ===
     int argc - number of command line variables input.

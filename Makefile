@@ -4,7 +4,7 @@ client: multiThreadedClient.c  multiThreadedCS.h
 server: multiThreadedServer.c multiThreadedCS.h
 	gcc -std=c99 multiThreadedServer.c multiThreadedCS.h -o server -lpthread
 
-zip: readme.txt members.txt Makefile 
-	zip 1393331-H42.zip readme.txt members.txt Makefile
+zip: readme.txt members.txt Makefile multiThreadedClient.c multiThreadedServer.c multiThreadedCS.h
+	zip 1393331-H42.zip readme.txt members.txt Makefile multiThreadedClient.c multiThreadedServer.c multiThreadedCS.h
 
 
