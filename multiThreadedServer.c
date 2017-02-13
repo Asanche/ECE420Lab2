@@ -55,10 +55,19 @@ void* ServerDecide(void *args)
     close(clientFileDescriptor);
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+    if(argc != 3)
+    {
+        printf("please use the format ./server <port> <arraySize>");
+        return 1;
+    }
+
+    int port = argv[1];
+    int arraySize = argv[2];
+
     //Initialize the strings appropriately
-    for(int i = 0; i < ARRAY_SIZE; i++)
+    for(int i = 0; i < arraySize; i++)
     {
         sprintf(theArray[i], "String %d: the initial value", i);
     }
@@ -73,7 +82,7 @@ int main()
     pthread_t t[20];
 
     sock_var.sin_addr.s_addr = inet_addr("127.0.0.1");
-    sock_var.sin_port = 3000;
+    sock_var.sin_port = port;
     sock_var.sin_family = AF_INET;
     
     if(bind(serverFileDescriptor, (struct sockaddr*)&sock_var,sizeof(sock_var)) >= 0)
