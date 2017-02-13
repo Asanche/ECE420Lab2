@@ -7,4 +7,7 @@ server: multiThreadedServer.c multiThreadedCS.h
 zip: readme.txt members.txt Makefile multiThreadedClient.c multiThreadedServer.c multiThreadedCS.h
 	zip 1393331-H42.zip readme.txt members.txt Makefile multiThreadedClient.c multiThreadedServer.c multiThreadedCS.h
 
+clean:
+	rm -rf *.o *.exe *.zip
+
 

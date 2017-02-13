@@ -13,7 +13,8 @@ Readme file for ECE lab 420
 - Make commands 
     - make zip - makes a zip of the required submission files
     - **make server - makes the server binary
-    - **mkae client - makes the client binary
+    - **make client - makes the client binary
+    - make clean - removes executables, binaries, compressed folders
 
 === RUN INSTRUCTIONS ===
 - ./client <port> <arraySize> - runs the client
