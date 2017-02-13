@@ -15,9 +15,9 @@ freeArray(int arraySize)
 {
     for(int i = 0; i < arraySize; i++)
     {
-        free(theArray[i])
+        free(theArray[i]);
     }
-    free(theArray)
+    free(theArray);
 }
 
 char* ReadString(int element)
