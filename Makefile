@@ -2,17 +2,17 @@ all:clean slow fast
 slow: client server
 fast: client fastServer
 
-client: client.c  service.h
-	gcc -std=c99 client.c -o client -lpthread
+client: source/client.c
+	gcc -std=c99 source/client.c -o client -lpthread
 
-server: server.c service.h
-	gcc -std=c99 server.c -o server -lpthread
+server: source/server.c
+	gcc -std=c99 source/server.c -o server -lpthread
 
-fastServer: fastServer.c service.h
-	gcc -std=c99 fastServer.c -o fastServer -lpthread
+fastServer: source/fastServer.c
+	gcc -std=c99 source/fastServer.c -o fastServer -lpthread
 
 zip: readme.txt members.txt Makefile client.c server.c service.h
-	zip 1393331-H42.zip readme.txt members.txt Makefile client.c server.c service.h
+	zip 1393331-H42.zip readme.txt members.txt Makefile soure/client.c source/server.c source/service.h source/timer.h
 
 clean:
 	rm -rf *.o *.exe *.zip
