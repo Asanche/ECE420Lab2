@@ -54,7 +54,7 @@ void* ClientAction(void *args)
 
     int clientFileDescriptor = socket(AF_INET, SOCK_STREAM, 0);
 
-    if(connect(clientFileDescriptor, (struct sockaddr*)&sock_var,sizeof(sock_var)) >= 0)
+    if(connect(clientFileDescriptor, (struct sockaddr*)&sock_var, sizeof(sock_var)) >= 0)
     {
         srand((int)args);
 
