@@ -58,27 +58,21 @@ void* ClientAction(void *args)
     {
         srand((int)args);
 
-        printf("Connected to server %d \n", clientFileDescriptor);
-        
         char element[16];
         sprintf(element, "%d", rand() % arraySize);
-        
-        write(clientFileDescriptor, element, 16);
 
         int readOrWrite = ReadOrWrite();
         if(readOrWrite)
         {
             char stringToWrite[MAX_STRING_LENGTH];
-            sprintf(stringToWrite, "String %s has been modified by a write request", element);
+            sprintf(stringToWrite, "%sString %s has been modified by a write request", element, element);
             write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
-            printf("Wrote %s\n", stringToWrite);
         }
         else
         {
-            write(clientFileDescriptor, "", MAX_STRING_LENGTH);
+            write(clientFileDescriptor, element, 16);
             char str_ser[MAX_STRING_LENGTH];
             read(clientFileDescriptor, str_ser, MAX_STRING_LENGTH);
-            printf("String from Server: \"%s\"\n", str_ser);
         }
 
         close(clientFileDescriptor);

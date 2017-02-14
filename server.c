@@ -32,7 +32,6 @@ char* ReadString(int element)
 */
     pthread_mutex_lock(&mutex); 
     char* readString = theArray[element];
-    printf("Read \"%s\" from element %d\n", readString, element);
     pthread_mutex_unlock(&mutex);
     return readString;
 }
@@ -49,7 +48,6 @@ void WriteString(int element, char* string)
 */
     pthread_mutex_lock(&mutex); 
     strcpy(theArray[element], string);
-    printf("Wrote \"%s\" to element %d\n", string, element);
     pthread_mutex_unlock(&mutex);
 }
 
@@ -69,20 +67,21 @@ void* ServerDecide(void *args)
     */
 
     int clientFileDescriptor = (int)args;
-    printf("Connected to client %d\n", clientFileDescriptor);
-    char stringToWrite[MAX_STRING_LENGTH];
-    char arrayElement[16];
 
-    read(clientFileDescriptor, arrayElement, 16);
-    read(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
+    char* stringToWrite;
+    char clientString[MAX_STRING_LENGTH];
+    
+    read(clientFileDescriptor, clientString, MAX_STRING_LENGTH);
+
+    int element = strtol(clientString, &stringToWrite, 10);
 
     if(strlen(stringToWrite) == 0)
     {
-        write(clientFileDescriptor, ReadString(atoi(arrayElement)), MAX_STRING_LENGTH);
+        write(clientFileDescriptor, ReadString(element), MAX_STRING_LENGTH);
     }
     else
     {
-        WriteString(atoi(arrayElement), stringToWrite);
+        WriteString(element, stringToWrite);
     }
 
     close(clientFileDescriptor);
