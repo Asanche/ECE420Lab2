@@ -32,6 +32,8 @@ int WeightedCoinToss(int seedIndex)
     if rand() produces a value of 1-5 (5%). We simply use this fact to 
     say we should only write if readOrWrite is 96-100
 */
+    printf("TRACE WeightedCoinToss\n");
+
     int upperBound = 100 / (100 - READ_PERCENTAGE);
     int weightedRand = rand_r(&seed[seedIndex]) % upperBound;
     if(weightedRand < (upperBound - 1)){ // minus 1 for zero indexing
@@ -52,7 +54,9 @@ void* ClientAction(void *args)
     void* args - this expects the thread number, and is used
         to seed the random number generator
 */
-    int request = (int)args;
+    printf("TRACE ClientAction\n");
+
+    int request = (intptr_t)args;
     struct sockaddr_in sock_var;
     sock_var.sin_addr.s_addr = inet_addr("127.0.0.1");
     sock_var.sin_port = port;
@@ -81,7 +85,7 @@ void* ClientAction(void *args)
     }
     else
     {
-        printf("socket creation failed\n");
+       // printf("Connection FAILED with FD: \t %d\n",clientFileDescriptor);
     }
     close(clientFileDescriptor);
     sem_post(&sem);
@@ -111,6 +115,8 @@ int main(int argc, char* argv[])
     1 - failure
     0 - ran to completion
 */
+    printf("TRACE main\n");
+
     if(argc != 3)
     {
         printf("please use the format ./client <port> <arraySize>");
@@ -138,7 +144,7 @@ int main(int argc, char* argv[])
     {
         i = i % MAX_THREADS;
         sem_wait(&sem);
-        pthread_create(&t[i], NULL, ClientAction, (void*)requestsMade);
+        pthread_create(&t[i], NULL, ClientAction, (void*)(intptr_t)requestsMade);
         if(++requestsMade == REQUESTS_TO_MAKE) break;
     }
     
@@ -148,7 +154,8 @@ int main(int argc, char* argv[])
     }
     GET_TIME(end);
     
-    printf("EXECUTION TIME: %lf \t REQUESTS MADE: %d\n", (end - start), requestsMade);
+    //printf("EXECUTION TIME: %lf \t REQUESTS MADE: %d\n", (end - start), requestsMade);
 
+    free(seed);
     return 0;
 }

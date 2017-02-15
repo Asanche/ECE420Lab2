@@ -142,7 +142,7 @@ void* ServerDecide(void *args)
     void* args - this is the input file from the client
     */
 
-    int clientFileDescriptor = (int)args;
+    int clientFileDescriptor = (intptr_t)args;
 
     char* stringToWrite;
     char clientString[MAX_STRING_LENGTH];
@@ -230,7 +230,7 @@ int main(int argc, char* argv[])
             for(int i = 0; i < THREAD_COUNT; i++)
             {
                 clientFileDescriptor = accept(serverFileDescriptor, NULL, NULL);
-                pthread_create(&t[i], NULL, ServerDecide, (void *)clientFileDescriptor);
+                pthread_create(&t[i], NULL, ServerDecide, (void *)(intptr_t)clientFileDescriptor);
             }
         }
         close(serverFileDescriptor);

@@ -13,15 +13,6 @@ char** theArray; // The array of strings held in memory for the client to read o
 pthread_mutex_t mutex; // The mutex that prevents race conditions b/w threads
 sem_t sem;
 
-void freeArray(int arraySize)
-{
-    for(int i = 0; i < arraySize; i++)
-    {
-        free(theArray[i]);
-    }
-    free(theArray);
-}
-
 char* ReadString(int element)
 {/*
     === DESCRIPTION ===
@@ -32,9 +23,10 @@ char* ReadString(int element)
     === PARAMETERS ===
     int element - the element of the array to read
 */
+    printf("TRACE ReadString\n");
     pthread_mutex_lock(&mutex); 
     char* readString = theArray[element];
-    printf("R \t ELEMENT: %d, \t STRING: %s\n", element, readString);
+    //printf("R \t ELEMENT: %d \t STRING: %s\n", element, readString);
     pthread_mutex_unlock(&mutex);
     return readString;
 }
@@ -49,9 +41,11 @@ void WriteString(int element, char* string)
     int element - the element of the array to write to
     char* string - the string to write to that element
 */
+    printf("TRACE WriteString\n");
+
     pthread_mutex_lock(&mutex); 
-    strcpy(theArray[element], string);
-    printf("W \t ELEMENT: %d, \t STRING: %s\n", element, string);
+    sprintf(theArray[element], "%s", string);
+    //printf("W \t ELEMENT: %d \t STRING: %s\n", element, string);
     pthread_mutex_unlock(&mutex);
 }
 
@@ -69,8 +63,8 @@ void* ServerDecide(void *args)
     === PARAMETERS ===
     void* args - this is the input file from the client
     */
-
-    int clientFileDescriptor = (int)args;
+    printf("TRACE ServerDecide\n");
+    int clientFileDescriptor = (intptr_t)args;
 
     char* stringToWrite;
     char clientString[MAX_STRING_LENGTH];
@@ -117,6 +111,7 @@ int main(int argc, char* argv[])
     1 - failure
     0 - ran to completion
 */
+    printf("TRACE main\n");
 
     //Check CL argument length
     if(argc != 3)
@@ -156,7 +151,7 @@ int main(int argc, char* argv[])
     int serverFileDescriptor = socket(AF_INET,SOCK_STREAM, 0);
     if(bind(serverFileDescriptor, (struct sockaddr*)&sock_var,sizeof(sock_var)) >= 0)
     {
-        printf("Socket has been created\n");
+        //printf("Socket has been created\n");
         listen(serverFileDescriptor,2000); 
         while(1) //loop infinitely
         {
@@ -164,7 +159,7 @@ int main(int argc, char* argv[])
             {
                 clientFileDescriptor = accept(serverFileDescriptor, NULL, NULL);
                 sem_wait(&sem);
-                pthread_create(&t[i], NULL, ServerDecide, (void *)clientFileDescriptor);
+                pthread_create(&t[i], NULL, ServerDecide, (void*)(intptr_t)clientFileDescriptor);
             }
         }
         close(serverFileDescriptor);
@@ -174,6 +169,5 @@ int main(int argc, char* argv[])
         printf("Socket creation failed\n");
     }
 
-    freeArray(arraySize);
     return 0;
 }
