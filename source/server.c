@@ -23,7 +23,6 @@ char* ReadString(int element)
     === PARAMETERS ===
     int element - the element of the array to read
 */
-    printf("TRACE ReadString\n");
     pthread_mutex_lock(&mutex); 
     char* readString = theArray[element];
     //printf("R \t ELEMENT: %d \t STRING: %s\n", element, readString);
@@ -41,7 +40,6 @@ void WriteString(int element, char* string)
     int element - the element of the array to write to
     char* string - the string to write to that element
 */
-    printf("TRACE WriteString\n");
 
     pthread_mutex_lock(&mutex); 
     sprintf(theArray[element], "%s", string);
@@ -63,7 +61,6 @@ void* ServerDecide(void *args)
     === PARAMETERS ===
     void* args - this is the input file from the client
     */
-    printf("TRACE ServerDecide\n");
     int clientFileDescriptor = (intptr_t)args;
 
     char* stringToWrite;
@@ -111,7 +108,6 @@ int main(int argc, char* argv[])
     1 - failure
     0 - ran to completion
 */
-    printf("TRACE main\n");
 
     //Check CL argument length
     if(argc != 3)

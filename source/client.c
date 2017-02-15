@@ -54,7 +54,6 @@ void* ClientAction(void *args)
     void* args - this expects the thread number, and is used
         to seed the random number generator
 */
-    printf("TRACE ClientAction\n");
 
     int request = (intptr_t)args;
     struct sockaddr_in sock_var;
@@ -115,7 +114,6 @@ int main(int argc, char* argv[])
     1 - failure
     0 - ran to completion
 */
-    printf("TRACE main\n");
 
     if(argc != 3)
     {
