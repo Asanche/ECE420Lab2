@@ -6,16 +6,20 @@
 
 #include "service.h"
 #include "timer.h"
+#include <semaphore.h>
 
 // === CONSTANTS ===
 #define WRITE_PERCENTAGE 5 //The percentage of requests that are writes
 #define READ_PERCENTAGE 95 //The percentage of requests that are reads
+#define REQUESTS_TO_MAKE 1000
 
 // === GLOBAL VARIABLES ===
 int port; //The port used to connect to the server
 int arraySize; //The size of the array held on the server
+int* seed;
+sem_t sem;
 
-int ReadOrWrite()
+int WeightedCoinToss(int seedIndex)
 {/*
     === DESCRIPTION ===
     This function decides whether to read or write. It returns 
@@ -28,11 +32,12 @@ int ReadOrWrite()
     if rand() produces a value of 1-5 (5%). We simply use this fact to 
     say we should only write if readOrWrite is 96-100
 */
-    int readOrWrite = (rand() % 100 + READ_PERCENTAGE) % 100;
-    if(readOrWrite <= READ_PERCENTAGE){
+    int upperBound = 100 / (100 - READ_PERCENTAGE);
+    int weightedRand = rand_r(&seed[seedIndex]) % upperBound;
+    if(weightedRand < (upperBound - 1)){ // minus 1 for zero indexing
         return 0;
     }
-    else return 1;
+    return 1;
 }
 
 void* ClientAction(void *args)
@@ -47,6 +52,7 @@ void* ClientAction(void *args)
     void* args - this expects the thread number, and is used
         to seed the random number generator
 */
+    int request = (int)args;
     struct sockaddr_in sock_var;
     sock_var.sin_addr.s_addr = inet_addr("127.0.0.1");
     sock_var.sin_port = port;
@@ -56,13 +62,11 @@ void* ClientAction(void *args)
 
     if(connect(clientFileDescriptor, (struct sockaddr*)&sock_var, sizeof(sock_var)) >= 0)
     {
-        srand((int)args);
-
         char element[16];
-        sprintf(element, "%d", rand() % arraySize);
+        sprintf(element, "%d", rand_r(&seed[request]) % arraySize);
 
-        int readOrWrite = ReadOrWrite();
-        if(readOrWrite)
+        int willWrite = WeightedCoinToss(request);
+        if(willWrite)
         {
             char stringToWrite[MAX_STRING_LENGTH];
             sprintf(stringToWrite, "%sString %s has been modified by a write request", element, element);
@@ -74,14 +78,14 @@ void* ClientAction(void *args)
             char str_ser[MAX_STRING_LENGTH];
             read(clientFileDescriptor, str_ser, MAX_STRING_LENGTH);
         }
-
-        close(clientFileDescriptor);
-        pthread_exit(NULL);
     }
     else
     {
         printf("socket creation failed\n");
     }
+    close(clientFileDescriptor);
+    sem_post(&sem);
+    pthread_exit(NULL);
 }
 
 int main(int argc, char* argv[])
@@ -113,27 +117,38 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    seed = malloc(REQUESTS_TO_MAKE*sizeof(int));
+    for (int i = 0; i < REQUESTS_TO_MAKE; i++)
+    {
+        seed[i] = i;
+    }
+
     port = atoi(argv[1]);
     arraySize = atoi(argv[2]);
 
     int threadCount = atoi(argv[1]);
-    pthread_t t[THREAD_COUNT];
+    pthread_t t[MAX_THREADS];
+    sem_init(&sem, 0, MAX_THREADS);
 
     double start; double end;
     GET_TIME(start);
-    for(int i = 0; i < THREAD_COUNT; i++)      //can support 20 clients at a time
+
+    int requestsMade;
+    for(int i = 0; i <= MAX_THREADS; i++)
     {
-        
-        pthread_create(&t[i], NULL, ClientAction, (void*)i);
+        i = i % MAX_THREADS;
+        sem_wait(&sem);
+        pthread_create(&t[i], NULL, ClientAction, (void*)requestsMade);
+        if(++requestsMade == REQUESTS_TO_MAKE) break;
     }
     
-    for(int i = 0; i < THREAD_COUNT; i++)      //can support 20 clients at a time
+    for(int i = 0; i < MAX_THREADS; i++)
     {
         pthread_join(t[i], NULL);
     }
     GET_TIME(end);
     
-    printf("EXECUTION TIME: %lf\n", (end - start));
+    printf("EXECUTION TIME: %lf \t REQUESTS MADE: %d\n", (end - start), requestsMade);
 
     return 0;
 }

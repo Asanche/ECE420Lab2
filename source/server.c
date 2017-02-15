@@ -6,10 +6,12 @@
     client
 */
 #include "service.h"
+#include <semaphore.h>
 
 // === GLOBAL VARIABLES ===
 char** theArray; // The array of strings held in memory for the client to read or write to
 pthread_mutex_t mutex; // The mutex that prevents race conditions b/w threads
+sem_t sem;
 
 void freeArray(int arraySize)
 {
@@ -32,6 +34,7 @@ char* ReadString(int element)
 */
     pthread_mutex_lock(&mutex); 
     char* readString = theArray[element];
+    printf("R \t ELEMENT: %d, \t STRING: %s\n", element, readString);
     pthread_mutex_unlock(&mutex);
     return readString;
 }
@@ -48,6 +51,7 @@ void WriteString(int element, char* string)
 */
     pthread_mutex_lock(&mutex); 
     strcpy(theArray[element], string);
+    printf("W \t ELEMENT: %d, \t STRING: %s\n", element, string);
     pthread_mutex_unlock(&mutex);
 }
 
@@ -85,6 +89,7 @@ void* ServerDecide(void *args)
     }
 
     close(clientFileDescriptor);
+    sem_post(&sem);
 }
 
 int main(int argc, char* argv[])
@@ -112,12 +117,15 @@ int main(int argc, char* argv[])
     1 - failure
     0 - ran to completion
 */
+
+    //Check CL argument length
     if(argc != 3)
     {
         printf("please use the format ./server <port> <arraySize>");
         return 1;
     }
 
+    //Get CL arguments
     int port = atoi(argv[1]);
     int arraySize = atoi(argv[2]);
 
@@ -134,28 +142,28 @@ int main(int argc, char* argv[])
         sprintf(theArray[i], "String %d: the initial value", i);
     }
 
-    struct sockaddr_in sock_var;
-    int serverFileDescriptor = socket(AF_INET,SOCK_STREAM, 0);
-    int clientFileDescriptor;
-
     pthread_mutex_init(&mutex, NULL);
+    sem_init(&sem, 0, MAX_THREADS);
 
+    pthread_t t[MAX_THREADS];
 
-    pthread_t t[THREAD_COUNT];
-
+    struct sockaddr_in sock_var;
     sock_var.sin_addr.s_addr = inet_addr("127.0.0.1");
     sock_var.sin_port = port;
     sock_var.sin_family = AF_INET;
     
+    int clientFileDescriptor;
+    int serverFileDescriptor = socket(AF_INET,SOCK_STREAM, 0);
     if(bind(serverFileDescriptor, (struct sockaddr*)&sock_var,sizeof(sock_var)) >= 0)
     {
         printf("Socket has been created\n");
         listen(serverFileDescriptor,2000); 
         while(1) //loop infinitely
         {
-            for(int i = 0; i < THREAD_COUNT; i++)
+            for(int i = 0; i < MAX_THREADS; i++)
             {
                 clientFileDescriptor = accept(serverFileDescriptor, NULL, NULL);
+                sem_wait(&sem);
                 pthread_create(&t[i], NULL, ServerDecide, (void *)clientFileDescriptor);
             }
         }
