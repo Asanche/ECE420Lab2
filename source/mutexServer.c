@@ -13,6 +13,16 @@ pthread_mutex_t mutex; // The mutex that prevents race conditions b/w threads
 int count;
 double times[MAX_THREADS];
 
+void WriteFile(){
+    FILE* fp;
+    fp = fopen("results/rwl_results.txt", "w+");
+    for(int i = 0; i < MAX_THREADS; i++)
+    {
+        fprintf(fp, "%lf\n", times[i]);
+    }
+    fclose(fp);
+}
+
 void* ServerDecide(void *args)
 {
     /* 
@@ -139,6 +149,7 @@ int main(int argc, char* argv[])
                 clientFileDescriptor = accept(serverFileDescriptor, NULL, NULL);
                 pthread_create(&t[i], NULL, ServerDecide, (void*)(intptr_t)clientFileDescriptor);
             }
+            WriteFile();
         }
         close(serverFileDescriptor);
     }

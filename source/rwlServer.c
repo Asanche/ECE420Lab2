@@ -14,13 +14,14 @@ pthread_rwlock_t   rwl; // The mutex that prevents race conditions b/w threads
 int count;
 double times[MAX_THREADS];
 
-void freeArray(int arraySize)
-{
-    for(int i = 0; i < arraySize; i++)
+void WriteFile(){
+    FILE* fp;
+    fp = fopen("results/rwl_results.txt", "w+");
+    for(int i = 0; i < MAX_THREADS; i++)
     {
-        free(theArray[i]);
+        fprintf(fp, "%lf\n", times[i]);
     }
-    free(theArray);
+    fclose(fp);
 }
 
 void* ServerDecide(void *args)
@@ -122,7 +123,6 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    FILE* fp;
     count = 0;
     int port = atoi(argv[1]);
     int arraySize = atoi(argv[2]);
@@ -178,11 +178,9 @@ int main(int argc, char* argv[])
                 {
                     perror("Server Accept Error");
                 }
-                if (count == 999) break;
             }
-            if (count == 999) break;
+            WriteFile();
         }
-        close(serverFileDescriptor);
     }
     else if(bound == -1)
     {
@@ -192,13 +190,6 @@ int main(int argc, char* argv[])
     {
         perror("Server Socket Error");
     }
-
-    fp = fopen("results/rwl_results.txt", "w+");
-    for(int i = 0; i < MAX_THREADS; i++)
-    {
-        fprintf(fp, "%lf\n", times[i]);
-    }
-    fclose(fp);
     
     return 0;
 }
