@@ -164,12 +164,5 @@ int main(int argc, char* argv[])
         printf("Socket creation failed\n");
     }
 
-    fp = fopen("results/array_results.txt", "w+");
-    for(int i = 0; i < MAX_THREADS; i++)
-    {
-        fprintf(fp, "%lf\n", times[i]);
-    }
-    fclose(fp);
-
     return 0;
 }
