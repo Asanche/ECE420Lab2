@@ -9,7 +9,7 @@ server: source/server.c
 	gcc -g -Wall -std=c99 source/server.c -o server -lpthread
 
 fastServer: source/fastServer.c
-	gcc -g -Wall -std=c99 source/fastServer.c -o fastServer -lpthread
+	gcc -g -Wall -std=gnu99 source/fastServer.c -o fastServer -lpthread
 
 arrayServer: source/arrayServer.c
 	gcc -g -Wall -std=c99 source/arrayServer.c -o arrayServer -lpthread
