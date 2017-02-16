@@ -1,15 +1,15 @@
 all:clean slow fast 
-slow: client server arrayServer
-fast: client fastServer
+slow: client mutexServer arrayServer
+fast: client rwlServer
 
 client: source/client.c
 	gcc -g -Wall -std=c99 source/client.c -o client -lpthread
 
-server: source/server.c
-	gcc -g -Wall -std=c99 source/server.c -o server -lpthread
+mutexServer: source/mutexServer.c
+	gcc -g -Wall -std=c99 source/mutexServer.c -o server -lpthread
 
-fastServer: source/fastServer.c
-	gcc -g -Wall -std=c99 source/fastServer.c -o fastServer -lpthread
+rwlServer: source/rwlServer.c
+	gcc -g -Wall -gnu=c99 source/rwlServer.c -o rwlServer -lpthread
 
 arrayServer: source/arrayServer.c
 	gcc -g -Wall -std=c99 source/arrayServer.c -o arrayServer -lpthread
