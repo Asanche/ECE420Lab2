@@ -14,7 +14,6 @@
 int port; //The port used to connect to the server
 int arraySize; //The size of the array held on the server
 int* seed;
-int successfulRequests;
 
 void* ClientAction(void *args)
 {/*
@@ -128,9 +127,8 @@ int main(int argc, char* argv[])
 
     port = atoi(argv[1]);
     arraySize = atoi(argv[2]);
-    pthread_mutex_init(&mutex, NULL);
 
-    successfulRequests = 0;
+    pthread_t t[MAX_THREADS];
 
     double start; double end;
     GET_TIME(start);
