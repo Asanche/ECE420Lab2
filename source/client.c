@@ -60,25 +60,32 @@ void* ClientAction(void *args)
 
             if(written == -1)
             {
-                perror("Client Write Error");
+                perror("Client Write Error 1");
             }
 
-            int itWasRead = read(clientFileDescriptor, serverResp, MAX_STRING_LENGTH);
-
-            if(itWasRead == -1)
-            {
-                perror("Client Read Error 2");
-            }
-            printf("SERVER RETURNED: \t %s\n", serverResp);
-        }
-        else // Read string from server's array
-        {
-            write(clientFileDescriptor, element, 16); // Write element we want to read
             int itWasRead = read(clientFileDescriptor, serverResp, MAX_STRING_LENGTH);
 
             if(itWasRead == -1)
             {
                 perror("Client Read Error 1");
+            }
+            printf("SERVER RETURNED: \t %s\n", serverResp);
+        }
+        else // Read string from server's array
+        {
+            int written = write(clientFileDescriptor, element, 16); // Write element we want to read
+
+
+            if(written == -1)
+            {
+                perror("Client Write Error 2");
+            }
+
+            int itWasRead = read(clientFileDescriptor, serverResp, MAX_STRING_LENGTH);
+
+            if(itWasRead == -1)
+            {
+                perror("Client Read Error  2");
             }
             printf("SERVER RETURNED: \t %s\n", serverResp);
         }
@@ -136,38 +143,34 @@ int main(int argc, char* argv[])
     arraySize = atoi(argv[2]);
 
     successfulRequests = 0;
-    pthread_t t[MAX_THREADS];
+    pthread_t t[REQUESTS_TO_MAKE];
 
     double start; double end;
     GET_TIME(start);
 
-    int j;
-    for(j = 0; j < REQUESTS_TO_MAKE;)
+    int i;
+    for(i = 0; i <= REQUESTS_TO_MAKE; i++)
     {
-        for(int i = 0; i <= MAX_THREADS; i++)
-        {
-            int created = pthread_create(&t[i], NULL, ClientAction, (void*)(intptr_t)j);
+        int created = pthread_create(&t[i], NULL, ClientAction, (void*)(intptr_t)i);
 
-            if(created == -1)
-            {
-                perror("Client Create Error");
-            }
-
-            if(++j == REQUESTS_TO_MAKE) break;
-        }
-        
-        for(int i = 0; i < MAX_THREADS; i++)
+        if(created == -1)
         {
-            int joined = pthread_join(t[i], NULL);
-            if(joined == -1)
-            {
-                perror("Client Join Error");
-            }
+            perror("Client Create Error");
         }
+    }
+    
+    for(int j = 0; j < REQUESTS_TO_MAKE; j++)
+    {
+        int joined = pthread_join(t[j], NULL);
+        if(joined == -1)
+        {
+            perror("Client Join Error");
+        }
+
     }
     GET_TIME(end);
     
-    printf("EXECUTION TIME: %lf \t SUCCESSFUL REQUESTS MADE: %d / %d\n", (end - start), successfulRequests, j);
+    printf("EXECUTION TIME: %lf \t SUCCESSFUL REQUESTS MADE: %d / %d\n", (end - start), successfulRequests, i);
 
     free(seed);
     return 0;
