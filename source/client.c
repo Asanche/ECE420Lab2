@@ -5,8 +5,6 @@
 */
 
 #include "service.h"
-#include <semaphore.h>
-#include "timer.h"
 
 // === CONSTANTS ===
 #define READ_PERCENTAGE 95 //The percentage of requests that are reads
@@ -16,6 +14,7 @@
 int port; //The port used to connect to the server
 int arraySize; //The size of the array held on the server
 int* seed;
+
 
 void* ClientAction(void *args)
 {/*
@@ -131,9 +130,6 @@ int main(int argc, char* argv[])
 
     pthread_t t[MAX_THREADS];
 
-    double start; double end;
-    GET_TIME(start);
-
     int i;
     for(i = 0; i < MAX_THREADS; i++)
     {
@@ -153,10 +149,7 @@ int main(int argc, char* argv[])
             perror("Client Join Error");
         }
     }
-    GET_TIME(end);
     
-    printf("EXECUTION TIME: %lf\n", (end - start));
-
     free(seed);
     return 0;
 }

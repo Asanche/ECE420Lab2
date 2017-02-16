@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include <string.h>
 #include <stdint.h>
+#include "timer.h"
 
 // === CONSTANTS ===
 #define MAX_STRING_LENGTH 1024 //The maximum length of string tha can e held in the server's list

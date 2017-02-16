@@ -6,7 +6,7 @@ client: source/client.c
 	gcc -g -Wall -std=c99 source/client.c -o client -lpthread
 
 mutexServer: source/mutexServer.c
-	gcc -g -Wall -std=c99 source/mutexServer.c -o server -lpthread
+	gcc -g -Wall -std=c99 source/mutexServer.c -o mutexServer -lpthread
 
 rwlServer: source/rwlServer.c
 	gcc -g -Wall -std=gnu99 source/rwlServer.c -o rwlServer -lpthread

@@ -8,18 +8,11 @@
 #include "service.h"
 #define WRITE_SUCcESS "String sucessfully written to array."
 
-typedef struct {
-    int readers;
-    int writer;
-    pthread_cond_t readers_proceed;
-    pthread_cond_t writer_proceed;
-    int pending_writers;
-    pthread_mutex_t read_write_lock;
-} rwlock_t;
-
 // === GLOBAL VARIABLES ===
 char** theArray; // The array of strings held in memory for the client to read or write to
 pthread_rwlock_t   rwl; // The mutex that prevents race conditions b/w threads
+int count;
+double times[MAX_THREADS];
 
 void freeArray(int arraySize)
 {
@@ -46,6 +39,7 @@ void* ServerDecide(void *args)
     */
 
     int clientFileDescriptor = (intptr_t)args;
+    double start; double end;
 
     char* stringToWriteTemp; // For strtol as it can't use a buffer >.>
     char stringToWrite[MAX_STRING_LENGTH];
@@ -62,12 +56,16 @@ void* ServerDecide(void *args)
     int element = strtol(clientString, &stringToWriteTemp, 10);
     strncpy(stringToWrite, stringToWriteTemp, MAX_STRING_LENGTH);
 
+    int index;
     if(strlen(stringToWrite) == 0) // Read desired string
     {
-        pthread_rwlock_rdlock(&rwl); 
+        GET_TIME(start);
+        pthread_rwlock_rdlock(&rwl);
+        index = ++count;
         strncpy(readString, theArray[element], MAX_STRING_LENGTH); // Copy to buffer is safer than directly reading
         printf("R \t ELEMENT: %d \t STRING: %s\n", element, readString);
         pthread_rwlock_unlock(&rwl);
+        GET_TIME(end);
         int written = write(clientFileDescriptor, readString, MAX_STRING_LENGTH); // Write back for client
         
         if(written == -1)
@@ -77,10 +75,13 @@ void* ServerDecide(void *args)
     }
     else
     {
-        pthread_rwlock_wrlock(&rwl); 
+        GET_TIME(start);
+        pthread_rwlock_wrlock(&rwl);
+        index = ++count;
         strncpy(theArray[element], stringToWrite, MAX_STRING_LENGTH);
         printf("W \t ELEMENT: %d \t STRING: %s\n", element, stringToWrite);
         pthread_rwlock_unlock(&rwl);
+        GET_TIME(end);
         int written = write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH); // Write back for client
         
         if(written == -1)
@@ -89,6 +90,7 @@ void* ServerDecide(void *args)
         }
     }
 
+    times[index] = (end - start);
     close(clientFileDescriptor);
     pthread_exit(NULL);
 }
@@ -120,6 +122,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    FILE* fp;
+    count = 0;
     int port = atoi(argv[1]);
     int arraySize = atoi(argv[2]);
     int clientFileDescriptor;
@@ -148,6 +152,7 @@ int main(int argc, char* argv[])
     
     int bound = bind(serverFileDescriptor, (struct sockaddr*)&sock_var,sizeof(sock_var));
 
+
     if(bound >= 0 && serverFileDescriptor >= 0)
     {
         int heard = listen(serverFileDescriptor, 2000); 
@@ -173,7 +178,9 @@ int main(int argc, char* argv[])
                 {
                     perror("Server Accept Error");
                 }
+                if (count == 999) break;
             }
+            if (count == 999) break;
         }
         close(serverFileDescriptor);
     }
@@ -186,6 +193,12 @@ int main(int argc, char* argv[])
         perror("Server Socket Error");
     }
 
-    freeArray(arraySize);
+    fp = fopen("results.txt", "w+");
+    for(int i = 0; i < MAX_THREADS; i++)
+    {
+        fprintf(fp, "%lf\n", times[i]);
+    }
+    fclose(fp);
+    
     return 0;
 }

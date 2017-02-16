@@ -6,12 +6,12 @@
     client
 */
 #include "service.h"
-#include <semaphore.h>
 
 // === GLOBAL VARIABLES ===
 char** theArray; // The array of strings held in memory for the client to read or write to
 pthread_mutex_t mutex; // The mutex that prevents race conditions b/w threads
-sem_t sem;
+int count;
+double times[MAX_THREADS];
 
 void* ServerDecide(void *args)
 {
@@ -28,6 +28,7 @@ void* ServerDecide(void *args)
     void* args - this is the input file from the client
     */
     int clientFileDescriptor = (intptr_t)args;
+    double start; double end;
 
     char* stringToWrite;
     char clientString[MAX_STRING_LENGTH];
@@ -37,22 +38,30 @@ void* ServerDecide(void *args)
 
     int element = strtol(clientString, &stringToWrite, 10);
 
+    int index;
     if(strlen(stringToWrite) == 0)
     {
-        pthread_mutex_lock(&mutex); 
+        GET_TIME(start);
+        pthread_mutex_lock(&mutex);
+        index = ++count;
         strncpy(readString, theArray[element], MAX_STRING_LENGTH);
         printf("R \t ELEMENT: %d \t STRING: %s\n", element, readString);
         pthread_mutex_unlock(&mutex);
+        GET_TIME(end);
         write(clientFileDescriptor, readString, MAX_STRING_LENGTH);
     }
     else
     {
-        pthread_mutex_lock(&mutex); 
+        GET_TIME(start);
+        pthread_mutex_lock(&mutex);
+        index = ++count;
         snprintf(theArray[element], MAX_STRING_LENGTH, "%s", stringToWrite);
         printf("W \t ELEMENT: %d \t STRING: %s\n", element, stringToWrite);
         pthread_mutex_unlock(&mutex);
+        GET_TIME(end);
     }
 
+    times[index] = (end - start);
     close(clientFileDescriptor);
     pthread_exit(NULL);
 }
@@ -91,6 +100,7 @@ int main(int argc, char* argv[])
     }
 
     //Get CL arguments
+    FILE* fp;
     int port = atoi(argv[1]);
     int arraySize = atoi(argv[2]);
 
@@ -136,6 +146,13 @@ int main(int argc, char* argv[])
     {
         printf("Socket creation failed\n");
     }
+
+    fp = fopen("results.txt", "w+");
+    for(int i = 0; i < MAX_THREADS; i++)
+    {
+        fprintf(fp, "%lf\n", times[i]);
+    }
+    fclose(fp);
 
     return 0;
 }
