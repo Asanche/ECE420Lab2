@@ -80,7 +80,7 @@ void* ClientAction(void *args)
     }
     else
     {
-        printf("Connection FAILED with FD: \t %d\n",clientFileDescriptor);
+        //printf("Connection FAILED with FD: \t %d\n",clientFileDescriptor);
     }
     close(clientFileDescriptor);
     pthread_exit(NULL);
