@@ -111,7 +111,6 @@ int main(int argc, char* argv[])
     }
 
     //Get CL arguments
-    FILE* fp;
     int port = atoi(argv[1]);
     int arraySize = atoi(argv[2]);
 
