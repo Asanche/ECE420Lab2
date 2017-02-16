@@ -16,27 +16,7 @@
 int port; //The port used to connect to the server
 int arraySize; //The size of the array held on the server
 int* seed;
-
-int WeightedCoinToss(int seedIndex)
-{/*
-    === DESCRIPTION ===
-    This function decides whether to read or write. It returns 
-    a value of 0 if you should read, and 1 if you should write.
-    It works by getting a random value from rand(), modding the
-    resultant number by 100 to get a value from 1 to 100, then 
-    adding the percentage with which we should read with (in this 
-    case that is 95%). We then mod this value by 100 again. Essentially
-    we get that the value of readOrWrite will only be between 95 and 100
-    if rand() produces a value of 1-5 (5%). We simply use this fact to 
-    say we should only write if readOrWrite is 96-100
-*/
-    int upperBound = 100 / (100 - READ_PERCENTAGE);
-    int weightedRand = rand_r(&seed[seedIndex]) % upperBound;
-    if(weightedRand < (upperBound - 1)){ // minus 1 for zero indexing
-        return 0;
-    }
-    return 1;
-}
+int successfulRequests;
 
 void* ClientAction(void *args)
 {/*
@@ -58,30 +38,62 @@ void* ClientAction(void *args)
     sock_var.sin_family = AF_INET;
 
     int clientFileDescriptor = socket(AF_INET, SOCK_STREAM, 0);
-
-    if(connect(clientFileDescriptor, (struct sockaddr*)&sock_var, sizeof(sock_var)) >= 0)
+    int canReuseAddr = setsockopt(clientFileDescriptor, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int));
+    int connected = connect(clientFileDescriptor, (struct sockaddr*)&sock_var, sizeof(sock_var));
+    if(connected >= 0 && clientFileDescriptor >= 0 && canReuseAddr >= 0)
     {
+        successfulRequests++;
         char element[16];
         snprintf(element, 16, "%d", rand_r(&seed[request]) % arraySize);
 
-        int willWrite = WeightedCoinToss(request);
+        //Weighted Coin Toss
+        int willWrite;
+        int upperBound = 100 / (100 - READ_PERCENTAGE);
+        int weightedRand = rand_r(&seed[request]) % upperBound;
+        if(weightedRand < (upperBound - 1)){ // minus 1 for zero indexing
+            willWrite =  0;
+        }
+        else
+        {
+            willWrite = 1;
+        }
+
         if(willWrite)
         {
             char stringToWrite[MAX_STRING_LENGTH];
             snprintf(stringToWrite, MAX_STRING_LENGTH, "%sString %s has been modified by a write request", element, element);
-            write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
+            int written = write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
+
+            if(written == -1)
+            {
+                perror("Client Write Error");
+            }
         }
         else
         {
             write(clientFileDescriptor, element, 16);
             char str_ser[MAX_STRING_LENGTH];
-            read(clientFileDescriptor, str_ser, MAX_STRING_LENGTH);
+            int itWasRead = read(clientFileDescriptor, str_ser, MAX_STRING_LENGTH);
+
+            if(itWasRead == -1)
+            {
+                perror("Client Read Error");
+            }
         }
     }
-    else
+    else if(connected == -1)
     {
-        //printf("Connection FAILED with FD: \t %d\n",clientFileDescriptor);
+        perror("Client Connect Error");
     }
+    else if(clientFileDescriptor == -1)
+    {
+        perror("Client Socket Error");
+    }
+    else if(canReuseAddr == -1)
+    {
+        perror("Client Socket Option SO_REUSEADDR Error");
+    }
+
     close(clientFileDescriptor);
     pthread_exit(NULL);
 }
@@ -125,6 +137,7 @@ int main(int argc, char* argv[])
     port = atoi(argv[1]);
     arraySize = atoi(argv[2]);
 
+    successfulRequests = 0;
     int threadCount = atoi(argv[1]);
     pthread_t t[MAX_THREADS];
 
@@ -147,7 +160,7 @@ int main(int argc, char* argv[])
     }
     GET_TIME(end);
     
-    printf("EXECUTION TIME: %lf \t REQUESTS MADE: %d\n", (end - start), j);
+    printf("EXECUTION TIME: %lf \t SUCCESSFUL REQUESTS MADE: %d / %d\n", (end - start), successfulRequests, j);
 
     free(seed);
     return 0;

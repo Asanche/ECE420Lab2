@@ -13,40 +13,6 @@ char** theArray; // The array of strings held in memory for the client to read o
 pthread_mutex_t mutex; // The mutex that prevents race conditions b/w threads
 sem_t sem;
 
-char* ReadString(int element)
-{/*
-    === DESCRIPTION ===
-    This is the read function. It uses a mutex to ensure no other reads or writes
-    occurr simultaneously. It simply returns the value read at a specified element
-    in the array
-
-    === PARAMETERS ===
-    int element - the element of the array to read
-*/
-    pthread_mutex_lock(&mutex); 
-    char* readString = theArray[element];
-    //printf("R \t ELEMENT: %d \t STRING: %s\n", element, readString);
-    pthread_mutex_unlock(&mutex);
-    return readString;
-}
-
-void WriteString(int element, char* string)
-{/*
-    === DESCRIPTION ===
-    This is the write function. It uses a mutex to ensure that no other writes
-    or reads occur simultaneously.
-
-    === PARAMETERS ===
-    int element - the element of the array to write to
-    char* string - the string to write to that element
-*/
-
-    pthread_mutex_lock(&mutex); 
-    snprintf(theArray[element], MAX_STRING_LENGTH, "%s", string);
-    //printf("W \t ELEMENT: %d \t STRING: %s\n", element, string);
-    pthread_mutex_unlock(&mutex);
-}
-
 void* ServerDecide(void *args)
 {
     /* 
@@ -72,11 +38,18 @@ void* ServerDecide(void *args)
 
     if(strlen(stringToWrite) == 0)
     {
-        write(clientFileDescriptor, ReadString(element), MAX_STRING_LENGTH);
+        pthread_mutex_lock(&mutex); 
+        char* readString = theArray[element];
+        //printf("R \t ELEMENT: %d \t STRING: %s\n", element, readString);
+        pthread_mutex_unlock(&mutex);
+        write(clientFileDescriptor, readString, MAX_STRING_LENGTH);
     }
     else
     {
-        WriteString(element, stringToWrite);
+        pthread_mutex_lock(&mutex); 
+        snprintf(theArray[element], MAX_STRING_LENGTH, "%s", stringToWrite);
+        //printf("W \t ELEMENT: %d \t STRING: %s\n", element, string);
+        pthread_mutex_unlock(&mutex);
     }
 
     close(clientFileDescriptor);

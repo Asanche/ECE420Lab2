@@ -95,37 +95,6 @@ void rwUnlock(rwlock_t* rwl) {
     }
 }
 
-char* ReadString(int element)
-{/*
-    === DESCRIPTION ===
-    This is the read function. It uses a mutex to ensure no other reads or writes
-    occurr simultaneously. It simply returns the value read at a specified element
-    in the array
-
-    === PARAMETERS ===
-    int element - the element of the array to read
-*/
-    readLock(&rwl); 
-    char* readString = theArray[element];
-    rwUnlock(&rwl);
-    return readString;
-}
-
-void WriteString(int element, char* string)
-{/*
-    === DESCRIPTION ===
-    This is the write function. It uses a mutex to ensure that no other writes
-    or reads occur simultaneously.
-
-    === PARAMETERS ===
-    int element - the element of the array to write to
-    char* string - the string to write to that element
-*/
-    writeLock(&rwl); 
-    strncpy(theArray[element], string, MAX_STRING_LENGTH);
-    rwUnlock(&rwl);
-}
-
 void* ServerDecide(void *args)
 {
     /* 
@@ -146,17 +115,32 @@ void* ServerDecide(void *args)
     char* stringToWrite;
     char clientString[MAX_STRING_LENGTH];
     
-    read(clientFileDescriptor, clientString, MAX_STRING_LENGTH);
+    int itWasRead =  read(clientFileDescriptor, clientString, MAX_STRING_LENGTH);
+
+    if(itWasRead == -1)
+    {
+        perror("Server Read Error");
+    }
 
     int element = strtol(clientString, &stringToWrite, 10);
 
     if(strlen(stringToWrite) == 0)
     {
-        write(clientFileDescriptor, ReadString(element), MAX_STRING_LENGTH);
+        readLock(&rwl); 
+        char* readString = theArray[element];
+        rwUnlock(&rwl);
+        int written = write(clientFileDescriptor, readString, MAX_STRING_LENGTH);
+        
+        if(written == -1)
+        {
+            perror("Server Write Error");
+        }
     }
     else
     {
-        WriteString(element, stringToWrite);
+        writeLock(&rwl); 
+        strncpy(theArray[element], stringToWrite, MAX_STRING_LENGTH);
+        rwUnlock(&rwl);
     }
 
     close(clientFileDescriptor);
@@ -211,6 +195,8 @@ int main(int argc, char* argv[])
 
     struct sockaddr_in sock_var;
     int serverFileDescriptor = socket(AF_INET,SOCK_STREAM, 0);
+    int canReuseAddr = setsockopt(serverFileDescriptor, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int));
+
     int clientFileDescriptor;
 
     rwlockInit(&rwl);
@@ -221,22 +207,44 @@ int main(int argc, char* argv[])
     sock_var.sin_port = port;
     sock_var.sin_family = AF_INET;
     
-    if(bind(serverFileDescriptor, (struct sockaddr*)&sock_var,sizeof(sock_var)) >= 0)
+    int bound = bind(serverFileDescriptor, (struct sockaddr*)&sock_var,sizeof(sock_var));
+
+    if(bound >= 0)
     {
-        listen(serverFileDescriptor,2000); 
+        int heard = listen(serverFileDescriptor, 2000); 
+
+        if (heard == -1) {
+            perror("Server Listening Error");
+        }
+
         while(1)//loop infinitely
         {
             for(int i = 0; i < MAX_THREADS; i++)
             {
                 clientFileDescriptor = accept(serverFileDescriptor, NULL, NULL);
-                pthread_create(&t[i], NULL, ServerDecide, (void *)(intptr_t)clientFileDescriptor);
+                if(clientFileDescriptor >= 0)
+                {
+                    pthread_create(&t[i], NULL, ServerDecide, (void *)(intptr_t)clientFileDescriptor);
+                }
+                else if(clientFileDescriptor == -1)
+                {
+                    perror("Server Accept Error");
+                }
             }
         }
         close(serverFileDescriptor);
     }
-    else
+    else if(bound == -1)
     {
-        printf("Socket creation failed\n");
+        perror("Server Bind Error");
+    }
+    else if(serverFileDescriptor == -1)
+    {
+        perror("Server Socket Error");
+    }
+    else if(canReuseAddr == -1)
+    {
+        perror("Server Socket Option SO_REUSEADDR Error");
     }
 
     freeArray(arraySize);
