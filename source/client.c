@@ -30,7 +30,6 @@ int WeightedCoinToss(int seedIndex)
     if rand() produces a value of 1-5 (5%). We simply use this fact to 
     say we should only write if readOrWrite is 96-100
 */
-
     int upperBound = 100 / (100 - READ_PERCENTAGE);
     int weightedRand = rand_r(&seed[seedIndex]) % upperBound;
     if(weightedRand < (upperBound - 1)){ // minus 1 for zero indexing
@@ -81,7 +80,7 @@ void* ClientAction(void *args)
     }
     else
     {
-       // printf("Connection FAILED with FD: \t %d\n",clientFileDescriptor);
+        printf("Connection FAILED with FD: \t %d\n",clientFileDescriptor);
     }
     close(clientFileDescriptor);
     pthread_exit(NULL);
