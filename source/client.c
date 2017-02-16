@@ -10,7 +10,7 @@
 // === CONSTANTS ===
 #define WRITE_PERCENTAGE 5 //The percentage of requests that are writes
 #define READ_PERCENTAGE 95 //The percentage of requests that are reads
-#define REQUESTS_TO_MAKE 1000
+#define REQUESTS_TO_MAKE 1000 //The amount of requests that the client will launch
 
 // === GLOBAL VARIABLES ===
 int port; //The port used to connect to the server

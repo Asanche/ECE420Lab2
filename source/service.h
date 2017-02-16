@@ -11,4 +11,4 @@
 
 // === CONSTANTS ===
 #define MAX_STRING_LENGTH 1024 //The maximum length of string tha can e held in the server's list
-#define MAX_THREADS 16 //The amount of threads used
+#define MAX_THREADS 32 //The amount of threads used
