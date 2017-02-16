@@ -6,7 +6,6 @@
 
 #include "service.h"
 #include "timer.h"
-#include <semaphore.h>
 
 // === CONSTANTS ===
 #define WRITE_PERCENTAGE 5 //The percentage of requests that are writes
@@ -17,7 +16,6 @@
 int port; //The port used to connect to the server
 int arraySize; //The size of the array held on the server
 int* seed;
-sem_t sem;
 
 int WeightedCoinToss(int seedIndex)
 {/*
@@ -32,7 +30,6 @@ int WeightedCoinToss(int seedIndex)
     if rand() produces a value of 1-5 (5%). We simply use this fact to 
     say we should only write if readOrWrite is 96-100
 */
-    printf("TRACE WeightedCoinToss\n");
 
     int upperBound = 100 / (100 - READ_PERCENTAGE);
     int weightedRand = rand_r(&seed[seedIndex]) % upperBound;
@@ -66,13 +63,13 @@ void* ClientAction(void *args)
     if(connect(clientFileDescriptor, (struct sockaddr*)&sock_var, sizeof(sock_var)) >= 0)
     {
         char element[16];
-        sprintf(element, "%d", rand_r(&seed[request]) % arraySize);
+        snprintf(element, 16, "%d", rand_r(&seed[request]) % arraySize);
 
         int willWrite = WeightedCoinToss(request);
         if(willWrite)
         {
             char stringToWrite[MAX_STRING_LENGTH];
-            sprintf(stringToWrite, "%sString %s has been modified by a write request", element, element);
+            snprintf(stringToWrite, MAX_STRING_LENGTH, "%sString %s has been modified by a write request", element, element);
             write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
         }
         else
@@ -87,7 +84,6 @@ void* ClientAction(void *args)
        // printf("Connection FAILED with FD: \t %d\n",clientFileDescriptor);
     }
     close(clientFileDescriptor);
-    sem_post(&sem);
     pthread_exit(NULL);
 }
 
@@ -132,27 +128,27 @@ int main(int argc, char* argv[])
 
     int threadCount = atoi(argv[1]);
     pthread_t t[MAX_THREADS];
-    sem_init(&sem, 0, MAX_THREADS);
 
     double start; double end;
     GET_TIME(start);
 
-    int requestsMade;
-    for(int i = 0; i <= MAX_THREADS; i++)
+    int j;
+    for(j = 0; j < REQUESTS_TO_MAKE;)
     {
-        i = i % MAX_THREADS;
-        sem_wait(&sem);
-        pthread_create(&t[i], NULL, ClientAction, (void*)(intptr_t)requestsMade);
-        if(++requestsMade == REQUESTS_TO_MAKE) break;
-    }
-    
-    for(int i = 0; i < MAX_THREADS; i++)
-    {
-        pthread_join(t[i], NULL);
+        for(int i = 0; i <= MAX_THREADS; i++)
+        {
+            pthread_create(&t[i], NULL, ClientAction, (void*)(intptr_t)j);
+            if(++j == REQUESTS_TO_MAKE) break;
+        }
+        
+        for(int i = 0; i < MAX_THREADS; i++)
+        {
+            pthread_join(t[i], NULL);
+        }
     }
     GET_TIME(end);
     
-    //printf("EXECUTION TIME: %lf \t REQUESTS MADE: %d\n", (end - start), requestsMade);
+    printf("EXECUTION TIME: %lf \t REQUESTS MADE: %d\n", (end - start), j);
 
     free(seed);
     return 0;

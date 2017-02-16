@@ -6,7 +6,6 @@
     client
 */
 #include "service.h"
-#define THREAD_COUNT 1000
 
 typedef struct {
     int readers;
@@ -123,7 +122,7 @@ void WriteString(int element, char* string)
     char* string - the string to write to that element
 */
     writeLock(&rwl); 
-    strcpy(theArray[element], string);
+    strncpy(theArray[element], string, MAX_STRING_LENGTH);
     rwUnlock(&rwl);
 }
 
@@ -216,7 +215,7 @@ int main(int argc, char* argv[])
 
     rwlockInit(&rwl);
 
-    pthread_t t[THREAD_COUNT];
+    pthread_t t[MAX_THREADS];
 
     sock_var.sin_addr.s_addr = inet_addr("127.0.0.1");
     sock_var.sin_port = port;
@@ -227,7 +226,7 @@ int main(int argc, char* argv[])
         listen(serverFileDescriptor,2000); 
         while(1)//loop infinitely
         {
-            for(int i = 0; i < THREAD_COUNT; i++)
+            for(int i = 0; i < MAX_THREADS; i++)
             {
                 clientFileDescriptor = accept(serverFileDescriptor, NULL, NULL);
                 pthread_create(&t[i], NULL, ServerDecide, (void *)(intptr_t)clientFileDescriptor);

@@ -42,7 +42,7 @@ void WriteString(int element, char* string)
 */
 
     pthread_mutex_lock(&mutex); 
-    sprintf(theArray[element], "%s", string);
+    snprintf(theArray[element], MAX_STRING_LENGTH, "%s", string);
     //printf("W \t ELEMENT: %d \t STRING: %s\n", element, string);
     pthread_mutex_unlock(&mutex);
 }
@@ -80,7 +80,6 @@ void* ServerDecide(void *args)
     }
 
     close(clientFileDescriptor);
-    sem_post(&sem);
 }
 
 int main(int argc, char* argv[])
@@ -130,7 +129,7 @@ int main(int argc, char* argv[])
     //Initialize the strings appropriately
     for(int i = 0; i < arraySize; i++)
     {
-        sprintf(theArray[i], "String %d: the initial value", i);
+        snprintf(theArray[i], MAX_STRING_LENGTH, "String %d: the initial value", i);
     }
 
     pthread_mutex_init(&mutex, NULL);
@@ -154,7 +153,6 @@ int main(int argc, char* argv[])
             for(int i = 0; i < MAX_THREADS; i++)
             {
                 clientFileDescriptor = accept(serverFileDescriptor, NULL, NULL);
-                sem_wait(&sem);
                 pthread_create(&t[i], NULL, ServerDecide, (void*)(intptr_t)clientFileDescriptor);
             }
         }
