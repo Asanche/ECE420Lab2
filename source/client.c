@@ -30,36 +30,31 @@ void* ClientAction(void *args)
     void* args - this expects the thread number, and is used
         to seed the random number generator
 */
+    char element[16];
+    char stringToWrite[MAX_STRING_LENGTH];
+    char serverResp[MAX_STRING_LENGTH];
 
     int request = (intptr_t)args;
+    int upperBound = 100 / (100 - READ_PERCENTAGE);
+    int weightedRand = rand_r(&seed[request]) % upperBound;
+    int willWrite = (weightedRand < (upperBound - 1)) ? 0 : 1;
     struct sockaddr_in sock_var;
+
     sock_var.sin_addr.s_addr = inet_addr("127.0.0.1");
     sock_var.sin_port = port;
     sock_var.sin_family = AF_INET;
 
     int clientFileDescriptor = socket(AF_INET, SOCK_STREAM, 0);
     int connected = connect(clientFileDescriptor, (struct sockaddr*)&sock_var, sizeof(sock_var));
+
     if(connected >= 0 && clientFileDescriptor >= 0)
     {
         successfulRequests++;
-        char element[16];
         snprintf(element, 16, "%d", rand_r(&seed[request]) % arraySize);
 
-        //Weighted Coin Toss
-        int willWrite;
-        int upperBound = 100 / (100 - READ_PERCENTAGE);
-        int weightedRand = rand_r(&seed[request]) % upperBound;
-        if(weightedRand < (upperBound - 1)){ // minus 1 for zero indexing
-            willWrite =  0;
-        }
-        else
-        {
-            willWrite = 1;
-        }
 
-        if(willWrite)
+        if(willWrite) // Write string to server's array'
         {
-            char stringToWrite[MAX_STRING_LENGTH];
             snprintf(stringToWrite, MAX_STRING_LENGTH, "%sString %s has been modified by a write request", element, element);
             int written = write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
 
@@ -68,11 +63,10 @@ void* ClientAction(void *args)
                 perror("Client Write Error");
             }
         }
-        else
+        else // Read string from server's array
         {
-            write(clientFileDescriptor, element, 16);
-            char str_ser[MAX_STRING_LENGTH];
-            int itWasRead = read(clientFileDescriptor, str_ser, MAX_STRING_LENGTH);
+            write(clientFileDescriptor, element, 16); // Write element we want to read
+            int itWasRead = read(clientFileDescriptor, serverResp, MAX_STRING_LENGTH);
 
             if(itWasRead == -1)
             {

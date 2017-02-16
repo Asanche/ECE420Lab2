@@ -112,8 +112,10 @@ void* ServerDecide(void *args)
 
     int clientFileDescriptor = (intptr_t)args;
 
-    char* stringToWrite;
+    char* stringToWriteTemp;
+    char stringToWrite[MAX_STRING_LENGTH];
     char clientString[MAX_STRING_LENGTH];
+    char readString[MAX_STRING_LENGTH];
     
     int itWasRead =  read(clientFileDescriptor, clientString, MAX_STRING_LENGTH);
 
@@ -122,12 +124,13 @@ void* ServerDecide(void *args)
         perror("Server Read Error");
     }
 
-    int element = strtol(clientString, &stringToWrite, 10);
+    int element = strtol(clientString, &stringToWriteTemp, 10);
+    strncpy(stringToWrite, stringToWriteTemp, MAX_STRING_LENGTH);
 
     if(strlen(stringToWrite) == 0)
     {
         readLock(&rwl); 
-        char* readString = theArray[element];
+        strncpy(readString, theArray[element], MAX_STRING_LENGTH);
         rwUnlock(&rwl);
         int written = write(clientFileDescriptor, readString, MAX_STRING_LENGTH);
         
@@ -167,10 +170,6 @@ int main(int argc, char* argv[])
     === COMMAND LINE ARGUMENTS ===
     argv[1] - Port to connect to (ususally 3000)
     argv[2] - The size of the server's array of strings
-    
-    === OUTPUTS ===
-    1 - failure
-    0 - ran to completion
 */
     if(argc != 3)
     {
@@ -180,7 +179,17 @@ int main(int argc, char* argv[])
 
     int port = atoi(argv[1]);
     int arraySize = atoi(argv[2]);
+    int clientFileDescriptor;
+    int serverFileDescriptor = socket(AF_INET,SOCK_STREAM, 0);
+    struct sockaddr_in sock_var;
+    pthread_t t[MAX_THREADS];
 
+    sock_var.sin_addr.s_addr = inet_addr("127.0.0.1");
+    sock_var.sin_port = port;
+    sock_var.sin_family = AF_INET;
+
+    rwlockInit(&rwl);
+    
     //Malloc the array
     theArray = (char**)malloc(sizeof(char*) * arraySize);
     for(int i = 0; i < arraySize; i++)
@@ -193,19 +202,6 @@ int main(int argc, char* argv[])
     {
         sprintf(theArray[i], "String %d: the initial value", i);
     }
-
-    struct sockaddr_in sock_var;
-    int serverFileDescriptor = socket(AF_INET,SOCK_STREAM, 0);
-    
-    int clientFileDescriptor;
-
-    rwlockInit(&rwl);
-
-    pthread_t t[MAX_THREADS];
-
-    sock_var.sin_addr.s_addr = inet_addr("127.0.0.1");
-    sock_var.sin_port = port;
-    sock_var.sin_family = AF_INET;
     
     int bound = bind(serverFileDescriptor, (struct sockaddr*)&sock_var,sizeof(sock_var));
 

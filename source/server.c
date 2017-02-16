@@ -31,6 +31,7 @@ void* ServerDecide(void *args)
 
     char* stringToWrite;
     char clientString[MAX_STRING_LENGTH];
+    char readString[MAX_STRING_LENGTH];
     
     read(clientFileDescriptor, clientString, MAX_STRING_LENGTH);
 
@@ -39,7 +40,7 @@ void* ServerDecide(void *args)
     if(strlen(stringToWrite) == 0)
     {
         pthread_mutex_lock(&mutex); 
-        char* readString = theArray[element];
+        strncpy(readString, theArray[element], MAX_STRING_LENGTH);
         //printf("R \t ELEMENT: %d \t STRING: %s\n", element, readString);
         pthread_mutex_unlock(&mutex);
         write(clientFileDescriptor, readString, MAX_STRING_LENGTH);
