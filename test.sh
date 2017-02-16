@@ -26,5 +26,6 @@ ATTEMPT=0
 while [[ $ATTEMPT -ne $Duplicates ]]; do
 	let ATTEMPT+=1
 	./client $port $arraysize
-	sleep .5
+	sleep 10
 done
+
