@@ -38,9 +38,8 @@ void* ClientAction(void *args)
     sock_var.sin_family = AF_INET;
 
     int clientFileDescriptor = socket(AF_INET, SOCK_STREAM, 0);
-    int canReuseAddr = setsockopt(clientFileDescriptor, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int));
     int connected = connect(clientFileDescriptor, (struct sockaddr*)&sock_var, sizeof(sock_var));
-    if(connected >= 0 && clientFileDescriptor >= 0 && canReuseAddr >= 0)
+    if(connected >= 0 && clientFileDescriptor >= 0)
     {
         successfulRequests++;
         char element[16];
@@ -88,10 +87,6 @@ void* ClientAction(void *args)
     else if(clientFileDescriptor == -1)
     {
         perror("Client Socket Error");
-    }
-    else if(canReuseAddr == -1)
-    {
-        perror("Client Socket Option SO_REUSEADDR Error");
     }
 
     close(clientFileDescriptor);
@@ -148,13 +143,23 @@ int main(int argc, char* argv[])
     {
         for(int i = 0; i <= MAX_THREADS; i++)
         {
-            pthread_create(&t[i], NULL, ClientAction, (void*)(intptr_t)j);
+            int created = pthread_create(&t[i], NULL, ClientAction, (void*)(intptr_t)j);
+
+            if(created == -1)
+            {
+                perror("Client Create Error");
+            }
+
             if(++j == REQUESTS_TO_MAKE) break;
         }
         
         for(int i = 0; i < MAX_THREADS; i++)
         {
-            pthread_join(t[i], NULL);
+            int joined = pthread_join(t[i], NULL);
+            if(joined == -1)
+            {
+                perror("Client Join Error");
+            }
         }
     }
     GET_TIME(end);

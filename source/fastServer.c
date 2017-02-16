@@ -196,8 +196,7 @@ int main(int argc, char* argv[])
 
     struct sockaddr_in sock_var;
     int serverFileDescriptor = socket(AF_INET,SOCK_STREAM, 0);
-    int canReuseAddr = setsockopt(serverFileDescriptor, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int));
-
+    
     int clientFileDescriptor;
 
     rwlockInit(&rwl);
@@ -210,7 +209,7 @@ int main(int argc, char* argv[])
     
     int bound = bind(serverFileDescriptor, (struct sockaddr*)&sock_var,sizeof(sock_var));
 
-    if(bound >= 0)
+    if(bound >= 0 && serverFileDescriptor >= 0)
     {
         int heard = listen(serverFileDescriptor, 2000); 
 
@@ -225,7 +224,11 @@ int main(int argc, char* argv[])
                 clientFileDescriptor = accept(serverFileDescriptor, NULL, NULL);
                 if(clientFileDescriptor >= 0)
                 {
-                    pthread_create(&t[i], NULL, ServerDecide, (void *)(intptr_t)clientFileDescriptor);
+                    int created = pthread_create(&t[i], NULL, ServerDecide, (void *)(intptr_t)clientFileDescriptor);
+                    if(created == -1)
+                    {
+                        perror("Server Create Error");
+                    }
                 }
                 else if(clientFileDescriptor == -1)
                 {
@@ -242,10 +245,6 @@ int main(int argc, char* argv[])
     else if(serverFileDescriptor == -1)
     {
         perror("Server Socket Error");
-    }
-    else if(canReuseAddr == -1)
-    {
-        perror("Server Socket Option SO_REUSEADDR Error");
     }
 
     freeArray(arraySize);
