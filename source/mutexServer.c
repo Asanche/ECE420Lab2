@@ -15,7 +15,7 @@ double times[MAX_THREADS];
 
 void WriteFile(){
     FILE* fp;
-    fp = fopen("results/rwl_results.txt", "w+");
+    fp = fopen("results/mutex_results.txt", "w+");
     for(int i = 0; i < MAX_THREADS; i++)
     {
         fprintf(fp, "%lf\n", times[i]);
