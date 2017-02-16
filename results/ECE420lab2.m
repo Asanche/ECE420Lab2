@@ -9,9 +9,12 @@ hold on
 [h2, stats2] = cdfplot(X2);
 [h3, stats3] = cdfplot(X3);
 legend('mutex', 'array', 'rwl');
-disp(['mutex - count:', count1, '  mean:', stats1.mean, '  median:', stats1.median, '  min:', stats1.min, '  max:', stats1.max]);
-disp(['mutex - count:', count2, '  mean:', stats2.mean, '  median:', stats2.median, '  min:', stats2.min, '  max:', stats2.max]);
-disp(['mutex - count:', count3, '  mean:', stats3.mean, '  median:', stats3.median, '  min:', stats3.min, '  max:', stats3.max]);
+Y1 = ['mutex - count:', count1, '  mean:', stats1.mean, '  median:', stats1.median, '  min:', stats1.min, '  max:', stats1.max]
+Y2 = ['mutex - count:', count2, '  mean:', stats2.mean, '  median:', stats2.median, '  min:', stats2.min, '  max:', stats2.max]
+Y3 = ['mutex - count:', count3, '  mean:', stats3.mean, '  median:', stats3.median, '  min:', stats3.min, '  max:', stats3.max]
+disp(Y1);
+disp(Y2);
+disp(Y3);
 fclose(file1);
 fclose(file2);
 fclose(file3);
