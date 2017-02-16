@@ -19,7 +19,7 @@ typedef struct {
 
 // === GLOBAL VARIABLES ===
 char** theArray; // The array of strings held in memory for the client to read or write to
-rwlock_t rwl; // The mutex that prevents race conditions b/w threads
+pthread_rwlock_t   rwl; // The mutex that prevents race conditions b/w threads
 
 void freeArray(int arraySize)
 {
@@ -28,72 +28,6 @@ void freeArray(int arraySize)
         free(theArray[i]);
     }
     free(theArray);
-}
-
-void rwlockInit (rwlock_t* rwl) {
-    rwl -> readers = rwl -> writer = rwl -> pending_writers = 0;
-    pthread_mutex_init(&(rwl -> read_write_lock), NULL);
-    pthread_cond_init(&(rwl -> readers_proceed), NULL);
-    pthread_cond_init(&(rwl -> writer_proceed), NULL);
-}
-
-void readLock(rwlock_t* rwl) {
-    /* if there is a write lock or pending writers, perform
-    condition wait, else increment count of readers and grant
-    read lock */
-    pthread_mutex_lock(&(rwl -> read_write_lock));
-
-    while ((rwl -> pending_writers > 0) || (rwl -> writer > 0))
-    {
-        pthread_cond_wait(&(rwl -> readers_proceed), &(rwl -> read_write_lock));
-    }
-
-    rwl -> readers++;
-    pthread_mutex_unlock(&(rwl -> read_write_lock));
-}
-
-void writeLock(rwlock_t* rwl) {
-    /* if there are readers or writers, increment pending
-    writers count and wait. On being woken, decrement pending
-    writers count and increment writer count */
-    pthread_mutex_lock(&(rwl -> read_write_lock));
-
-    while ((rwl -> writer > 0) || (rwl -> readers > 0)) {
-        rwl -> pending_writers++;
-        pthread_cond_wait(&(rwl -> writer_proceed), &(rwl -> read_write_lock));
-        rwl -> pending_writers--;
-    }
-
-    rwl -> writer++;
-    pthread_mutex_unlock(&(rwl -> read_write_lock));
-}
-
-void rwUnlock(rwlock_t* rwl) {
-    /* if there is a write lock then unlock, else if there
-    are read locks, decrement count of read locks. If the count
-    is 0 and there is a pending writer, let it through, else if
-    there are pending readers, let them all go through */
-    pthread_mutex_lock(&(rwl -> read_write_lock));
-
-    if (rwl -> writer > 0)
-    {
-        rwl -> writer = 0;
-    }
-    else if (rwl -> readers > 0)
-    {
-        rwl -> readers--;
-    }
-
-    pthread_mutex_unlock(&(rwl -> read_write_lock));
-
-    if ((rwl -> readers == 0) && (rwl -> pending_writers > 0))
-    {
-        pthread_cond_signal(&(rwl -> writer_proceed));
-    }
-    else if (rwl -> readers > 0)
-    {
-        pthread_cond_broadcast(&(rwl -> readers_proceed));
-    }
 }
 
 void* ServerDecide(void *args)
@@ -130,10 +64,10 @@ void* ServerDecide(void *args)
 
     if(strlen(stringToWrite) == 0) // Read desired string
     {
-        readLock(&rwl); 
+        pthread_rwlock_rdlock(&rwl); 
         strncpy(readString, theArray[element], MAX_STRING_LENGTH); // Copy to buffer is safer than directly reading
         printf("R \t ELEMENT: %d \t STRING: %s\n", element, readString);
-        rwUnlock(&rwl);
+        pthread_rwlock_unlock(&rwl);
         int written = write(clientFileDescriptor, readString, MAX_STRING_LENGTH); // Write back for client
         
         if(written == -1)
@@ -143,10 +77,10 @@ void* ServerDecide(void *args)
     }
     else
     {
-        writeLock(&rwl); 
+        pthread_rwlock_wrlock(&rwl); 
         strncpy(theArray[element], stringToWrite, MAX_STRING_LENGTH);
         printf("W \t ELEMENT: %d \t STRING: %s\n", element, stringToWrite);
-        rwUnlock(&rwl);
+        pthread_rwlock_unlock(&rwl);
         int written = write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH); // Write back for client
         
         if(written == -1)
@@ -197,7 +131,7 @@ int main(int argc, char* argv[])
     sock_var.sin_port = port;
     sock_var.sin_family = AF_INET;
 
-    rwlockInit(&rwl);
+    pthread_rwlock_init(&rwl, NULL);
     
     //Malloc the array
     theArray = (char**)malloc(sizeof(char*) * arraySize);
