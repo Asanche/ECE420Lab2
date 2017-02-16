@@ -30,11 +30,15 @@ void* ClientAction(void *args)
     void* args - this expects the thread number, and is used
         to seed the random number generator
 */
-    char element[16];
     char stringToWrite[MAX_STRING_LENGTH];
     char serverResp[MAX_STRING_LENGTH];
 
+    //Error values
+    int written;
+    int itWasRead;
+
     int request = (intptr_t)args;
+    int element = rand_r(&seed[request]) % arraySize;
     int upperBound = 100 / (100 - READ_PERCENTAGE);
     int weightedRand = rand_r(&seed[request]) % upperBound;
     int willWrite = (weightedRand < (upperBound - 1)) ? 0 : 1;
@@ -47,48 +51,26 @@ void* ClientAction(void *args)
     int clientFileDescriptor = socket(AF_INET, SOCK_STREAM, 0);
     int connected = connect(clientFileDescriptor, (struct sockaddr*)&sock_var, sizeof(sock_var));
 
+    if(willWrite) // Write string to server's array'
+    {
+        snprintf(stringToWrite, MAX_STRING_LENGTH, "%dString %d has been modified by a write request", element, element);
+    }
+    else // Read string from server's array
+    {
+        snprintf(stringToWrite, MAX_STRING_LENGTH, "%d", element); // Write element we want to read
+    }
+
+    
     if(connected >= 0 && clientFileDescriptor >= 0)
     {
         successfulRequests++;
-        snprintf(element, 16, "%d", rand_r(&seed[request]) % arraySize);
 
+        written = write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
+        itWasRead = read(clientFileDescriptor, serverResp, MAX_STRING_LENGTH);
+        
+        printf("SERVER RETURNED: \t %s\n", serverResp);
 
-        if(willWrite) // Write string to server's array'
-        {
-            snprintf(stringToWrite, MAX_STRING_LENGTH, "%sString %s has been modified by a write request", element, element);
-            int written = write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
-
-            if(written == -1)
-            {
-                perror("Client Write Error 1");
-            }
-
-            int itWasRead = read(clientFileDescriptor, serverResp, MAX_STRING_LENGTH);
-
-            if(itWasRead == -1)
-            {
-                perror("Client Read Error 1");
-            }
-            printf("SERVER RETURNED: \t %s\n", serverResp);
-        }
-        else // Read string from server's array
-        {
-            int written = write(clientFileDescriptor, element, 16); // Write element we want to read
-
-
-            if(written == -1)
-            {
-                perror("Client Write Error 2");
-            }
-
-            int itWasRead = read(clientFileDescriptor, serverResp, MAX_STRING_LENGTH);
-
-            if(itWasRead == -1)
-            {
-                perror("Client Read Error  2");
-            }
-            printf("SERVER RETURNED: \t %s\n", serverResp);
-        }
+        close(clientFileDescriptor);
     }
     else if(connected == -1)
     {
@@ -99,7 +81,16 @@ void* ClientAction(void *args)
         perror("Client Socket Error");
     }
 
-    close(clientFileDescriptor);
+    if(written == -1) // Was the value written properly?
+    {
+        perror("Client Write Error ");
+    }
+
+    if(itWasRead == -1) // Was the value read properly?
+    {
+        perror("Client Read Error ");
+    }
+
     pthread_exit(NULL);
 }
 
@@ -166,7 +157,6 @@ int main(int argc, char* argv[])
         {
             perror("Client Join Error");
         }
-
     }
     GET_TIME(end);
     
