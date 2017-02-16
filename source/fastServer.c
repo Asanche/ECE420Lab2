@@ -144,6 +144,7 @@ void* ServerDecide(void *args)
     }
 
     close(clientFileDescriptor);
+    pthread_exit(NULL);
 }
 
 int main(int argc, char* argv[])

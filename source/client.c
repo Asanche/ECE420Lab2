@@ -138,7 +138,6 @@ int main(int argc, char* argv[])
     arraySize = atoi(argv[2]);
 
     successfulRequests = 0;
-    int threadCount = atoi(argv[1]);
     pthread_t t[MAX_THREADS];
 
     double start; double end;
