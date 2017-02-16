@@ -110,7 +110,6 @@ int main(int argc, char* argv[])
     }
 
     //Get CL arguments
-    FILE* fp;
     int port = atoi(argv[1]);
     int arraySize = atoi(argv[2]);
 
@@ -149,6 +148,11 @@ int main(int argc, char* argv[])
                 clientFileDescriptor = accept(serverFileDescriptor, NULL, NULL);
                 pthread_create(&t[i], NULL, ServerDecide, (void*)(intptr_t)clientFileDescriptor);
             }
+
+            for(int i = 0; i < MAX_THREADS; i++)
+            {
+                pthread_join(t[i], NULL);
+            }
             WriteFile();
         }
         close(serverFileDescriptor);
@@ -157,13 +161,6 @@ int main(int argc, char* argv[])
     {
         printf("Socket creation failed\n");
     }
-
-    fp = fopen("results/mutex_results.txt", "w+");
-    for(int i = 0; i < MAX_THREADS; i++)
-    {
-        fprintf(fp, "%lf\n", times[i]);
-    }
-    fclose(fp);
 
     return 0;
 }

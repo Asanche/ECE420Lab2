@@ -154,6 +154,12 @@ int main(int argc, char* argv[])
                 clientFileDescriptor = accept(serverFileDescriptor, NULL, NULL);
                 pthread_create(&t[i], NULL, ServerDecide, (void*)(intptr_t)clientFileDescriptor);
             }
+
+            for(int i = 0; i < MAX_THREADS; i++)
+            {
+                pthread_join(t[i], NULL);
+            }
+
             WriteFile();
         }
         close(serverFileDescriptor);

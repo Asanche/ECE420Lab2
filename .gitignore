@@ -37,3 +37,12 @@
 
 # Compressed files
 *.zip
+
+# Results files
+results/*.txt
+
+# my binaries
+mutexServer
+arrayServer
+client
+rwlServer
