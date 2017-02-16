@@ -5,15 +5,18 @@
 */
 
 #include "service.h"
+#include <semaphore.h>
 #include "timer.h"
 
 // === CONSTANTS ===
 #define READ_PERCENTAGE 95 //The percentage of requests that are reads
+#define MAX_FILE_DESCRIPTORS 256
 
 // === GLOBAL VARIABLES ===
 int port; //The port used to connect to the server
 int arraySize; //The size of the array held on the server
 int* seed;
+sem_t sem;
 
 void* ClientAction(void *args)
 {/*
@@ -45,6 +48,7 @@ void* ClientAction(void *args)
     sock_var.sin_port = port;
     sock_var.sin_family = AF_INET;
 
+    
     int clientFileDescriptor = socket(AF_INET, SOCK_STREAM, 0);
     int connected = connect(clientFileDescriptor, (struct sockaddr*)&sock_var, sizeof(sock_var));
 
@@ -60,12 +64,14 @@ void* ClientAction(void *args)
     
     if(connected >= 0 && clientFileDescriptor >= 0)
     {
+        sem_wait(&sem);
         written = write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
         itWasRead = read(clientFileDescriptor, serverResp, MAX_STRING_LENGTH);
         
         //printf("SERVER RETURNED: \t %s\n", serverResp);
 
         close(clientFileDescriptor);
+        sem_post(&sem);
     }
     else if(connected == -1)
     {
@@ -129,6 +135,7 @@ int main(int argc, char* argv[])
     arraySize = atoi(argv[2]);
 
     pthread_t t[MAX_THREADS];
+    sem_init(&sem, 1, MAX_FILE_DESCRIPTORS);
 
     double start; double end;
     GET_TIME(start);
