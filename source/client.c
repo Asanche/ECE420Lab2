@@ -62,6 +62,14 @@ void* ClientAction(void *args)
             {
                 perror("Client Write Error");
             }
+
+            int itWasRead = read(clientFileDescriptor, serverResp, MAX_STRING_LENGTH);
+
+            if(itWasRead == -1)
+            {
+                perror("Client Read Error 2");
+            }
+            printf("SERVER RETURNED: \t %s\n", serverResp);
         }
         else // Read string from server's array
         {
@@ -70,8 +78,9 @@ void* ClientAction(void *args)
 
             if(itWasRead == -1)
             {
-                perror("Client Read Error");
+                perror("Client Read Error 1");
             }
+            printf("SERVER RETURNED: \t %s\n", serverResp);
         }
     }
     else if(connected == -1)

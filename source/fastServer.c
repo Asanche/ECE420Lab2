@@ -6,6 +6,7 @@
     client
 */
 #include "service.h"
+#define WRITE_SUCcESS "String sucessfully written to array."
 
 typedef struct {
     int readers;
@@ -112,7 +113,7 @@ void* ServerDecide(void *args)
 
     int clientFileDescriptor = (intptr_t)args;
 
-    char* stringToWriteTemp;
+    char* stringToWriteTemp; // For strtol as it can't use a buffer >.>
     char stringToWrite[MAX_STRING_LENGTH];
     char clientString[MAX_STRING_LENGTH];
     char readString[MAX_STRING_LENGTH];
@@ -127,23 +128,31 @@ void* ServerDecide(void *args)
     int element = strtol(clientString, &stringToWriteTemp, 10);
     strncpy(stringToWrite, stringToWriteTemp, MAX_STRING_LENGTH);
 
-    if(strlen(stringToWrite) == 0)
+    if(strlen(stringToWrite) == 0) // Read desired string
     {
         readLock(&rwl); 
-        strncpy(readString, theArray[element], MAX_STRING_LENGTH);
+        strncpy(readString, theArray[element], MAX_STRING_LENGTH); // Copy to buffer is safer than directly reading
+        //printf("R \t ELEMENT: %d \t STRING: %s\n", element, readString);
         rwUnlock(&rwl);
-        int written = write(clientFileDescriptor, readString, MAX_STRING_LENGTH);
+        int written = write(clientFileDescriptor, readString, MAX_STRING_LENGTH); // Write back for client
         
         if(written == -1)
         {
-            perror("Server Write Error");
+            perror("Server Write Error 1");
         }
     }
     else
     {
         writeLock(&rwl); 
         strncpy(theArray[element], stringToWrite, MAX_STRING_LENGTH);
+        //printf("W \t ELEMENT: %d \t STRING: %s\n", element, stringToWrite);
         rwUnlock(&rwl);
+        int written = write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH); // Write back for client
+        
+        if(written == -1)
+        {
+            perror("Server Write Error 2");
+        }
     }
 
     close(clientFileDescriptor);
