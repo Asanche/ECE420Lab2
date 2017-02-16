@@ -46,7 +46,6 @@ void* ClientAction(void *args)
     sock_var.sin_addr.s_addr = inet_addr("127.0.0.1");
     sock_var.sin_port = port;
     sock_var.sin_family = AF_INET;
-
     
     int clientFileDescriptor = socket(AF_INET, SOCK_STREAM, 0);
     int connected = connect(clientFileDescriptor, (struct sockaddr*)&sock_var, sizeof(sock_var));
@@ -59,14 +58,13 @@ void* ClientAction(void *args)
     {
         snprintf(stringToWrite, MAX_STRING_LENGTH, "%d", element); // Write element we want to read
     }
-
     
     if(connected >= 0 && clientFileDescriptor >= 0)
     {
         written = write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
         itWasRead = read(clientFileDescriptor, serverResp, MAX_STRING_LENGTH);
         
-        //printf("SERVER RETURNED: \t %s\n", serverResp);
+        printf("SERVER RETURNED: \t %s\n", serverResp);
 
         close(clientFileDescriptor);
     }

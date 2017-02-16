@@ -132,7 +132,7 @@ void* ServerDecide(void *args)
     {
         readLock(&rwl); 
         strncpy(readString, theArray[element], MAX_STRING_LENGTH); // Copy to buffer is safer than directly reading
-        //printf("R \t ELEMENT: %d \t STRING: %s\n", element, readString);
+        printf("R \t ELEMENT: %d \t STRING: %s\n", element, readString);
         rwUnlock(&rwl);
         int written = write(clientFileDescriptor, readString, MAX_STRING_LENGTH); // Write back for client
         
@@ -145,7 +145,7 @@ void* ServerDecide(void *args)
     {
         writeLock(&rwl); 
         strncpy(theArray[element], stringToWrite, MAX_STRING_LENGTH);
-        //printf("W \t ELEMENT: %d \t STRING: %s\n", element, stringToWrite);
+        printf("W \t ELEMENT: %d \t STRING: %s\n", element, stringToWrite);
         rwUnlock(&rwl);
         int written = write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH); // Write back for client
         

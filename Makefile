@@ -1,5 +1,5 @@
-all:clean slow fast
-slow: client server
+all:clean slow fast 
+slow: client server arrayServer
 fast: client fastServer
 
 client: source/client.c
@@ -10,6 +10,9 @@ server: source/server.c
 
 fastServer: source/fastServer.c
 	gcc -g -Wall -std=c99 source/fastServer.c -o fastServer -lpthread
+
+arrayServer: source/arrayServer.c
+	gcc -g -Wall -std=c99 source/arrayServer.c -o arrayServer -lpthread
 
 zip: readme.txt members.txt Makefile client.c server.c service.h
 	zip 1393331-H42.zip readme.txt members.txt Makefile soure/client.c source/server.c source/service.h source/timer.h

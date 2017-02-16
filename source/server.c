@@ -41,7 +41,7 @@ void* ServerDecide(void *args)
     {
         pthread_mutex_lock(&mutex); 
         strncpy(readString, theArray[element], MAX_STRING_LENGTH);
-        //printf("R \t ELEMENT: %d \t STRING: %s\n", element, readString);
+        printf("R \t ELEMENT: %d \t STRING: %s\n", element, readString);
         pthread_mutex_unlock(&mutex);
         write(clientFileDescriptor, readString, MAX_STRING_LENGTH);
     }
@@ -49,7 +49,7 @@ void* ServerDecide(void *args)
     {
         pthread_mutex_lock(&mutex); 
         snprintf(theArray[element], MAX_STRING_LENGTH, "%s", stringToWrite);
-        //printf("W \t ELEMENT: %d \t STRING: %s\n", element, string);
+        printf("W \t ELEMENT: %d \t STRING: %s\n", element, stringToWrite);
         pthread_mutex_unlock(&mutex);
     }
 
@@ -108,7 +108,6 @@ int main(int argc, char* argv[])
     }
 
     pthread_mutex_init(&mutex, NULL);
-    sem_init(&sem, 0, MAX_THREADS);
 
     pthread_t t[MAX_THREADS];
 
