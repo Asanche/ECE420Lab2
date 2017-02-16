@@ -179,6 +179,12 @@ int main(int argc, char* argv[])
                     perror("Server Accept Error");
                 }
             }
+
+            for(int i = 0; i < MAX_THREADS; i++)
+            {
+                pthread_join(t[i], NULL);
+            }
+
             WriteFile();
         }
     }
