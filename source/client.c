@@ -8,9 +8,7 @@
 #include "timer.h"
 
 // === CONSTANTS ===
-#define WRITE_PERCENTAGE 5 //The percentage of requests that are writes
 #define READ_PERCENTAGE 95 //The percentage of requests that are reads
-#define REQUESTS_TO_MAKE 1000 //The amount of requests that the client will launch
 
 // === GLOBAL VARIABLES ===
 int port; //The port used to connect to the server
@@ -68,7 +66,7 @@ void* ClientAction(void *args)
         written = write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
         itWasRead = read(clientFileDescriptor, serverResp, MAX_STRING_LENGTH);
         
-        printf("SERVER RETURNED: \t %s\n", serverResp);
+        //printf("SERVER RETURNED: \t %s\n", serverResp);
 
         close(clientFileDescriptor);
     }
@@ -83,12 +81,12 @@ void* ClientAction(void *args)
 
     if(written == -1) // Was the value written properly?
     {
-        perror("Client Write Error ");
+        perror("Client Write Error");
     }
 
     if(itWasRead == -1) // Was the value read properly?
     {
-        perror("Client Read Error ");
+        perror("Client Read Error");
     }
 
     pthread_exit(NULL);
@@ -124,8 +122,8 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    seed = malloc(REQUESTS_TO_MAKE*sizeof(int));
-    for (int i = 0; i < REQUESTS_TO_MAKE; i++)
+    seed = malloc(MAX_THREADS*sizeof(int));
+    for (int i = 0; i < MAX_THREADS; i++)
     {
         seed[i] = i;
     }
@@ -134,13 +132,13 @@ int main(int argc, char* argv[])
     arraySize = atoi(argv[2]);
 
     successfulRequests = 0;
-    pthread_t t[REQUESTS_TO_MAKE];
+    pthread_t t[MAX_THREADS];
 
     double start; double end;
     GET_TIME(start);
 
     int i;
-    for(i = 0; i <= REQUESTS_TO_MAKE; i++)
+    for(i = 0; i < MAX_THREADS; i++)
     {
         int created = pthread_create(&t[i], NULL, ClientAction, (void*)(intptr_t)i);
 
@@ -150,7 +148,7 @@ int main(int argc, char* argv[])
         }
     }
     
-    for(int j = 0; j < REQUESTS_TO_MAKE; j++)
+    for(int j = 0; j < MAX_THREADS; j++)
     {
         int joined = pthread_join(t[j], NULL);
         if(joined == -1)
