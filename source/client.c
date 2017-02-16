@@ -15,6 +15,7 @@ int port; //The port used to connect to the server
 int arraySize; //The size of the array held on the server
 int* seed;
 int successfulRequests;
+pthread_mutex_t mutex;
 
 void* ClientAction(void *args)
 {/*
@@ -61,7 +62,9 @@ void* ClientAction(void *args)
     
     if(connected >= 0 && clientFileDescriptor >= 0)
     {
+        pthread_mutex_lock(&mutex);
         successfulRequests++;
+        pthread_mutex_unlock(&mutex);
 
         written = write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
         itWasRead = read(clientFileDescriptor, serverResp, MAX_STRING_LENGTH);
@@ -130,6 +133,7 @@ int main(int argc, char* argv[])
 
     port = atoi(argv[1]);
     arraySize = atoi(argv[2]);
+    pthread_mutex_init(&mutex, NULL);
 
     successfulRequests = 0;
     pthread_t t[MAX_THREADS];
