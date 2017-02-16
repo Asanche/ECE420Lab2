@@ -8,13 +8,8 @@ client: source/client.c
 mutexServer: source/mutexServer.c
 	gcc -g -Wall -std=c99 source/mutexServer.c -o server -lpthread
 
-<<<<<<< HEAD
 rwlServer: source/rwlServer.c
-	gcc -g -Wall -gnu=c99 source/rwlServer.c -o rwlServer -lpthread
-=======
-fastServer: source/fastServer.c
-	gcc -g -Wall -std=gnu99 source/fastServer.c -o fastServer -lpthread
->>>>>>> cfa797d445b7f7f7f5fcbd00aa8a9c4a16602357
+	gcc -g -Wall -std=gnu99 source/rwlServer.c -o rwlServer -lpthread
 
 arrayServer: source/arrayServer.c
 	gcc -g -Wall -std=c99 source/arrayServer.c -o arrayServer -lpthread
