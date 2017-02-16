@@ -44,7 +44,7 @@ void* ServerDecide(void *args)
     {
         GET_TIME(start);
         pthread_mutex_lock(&mutex[element]);
-        index = ++count;
+        index = count++;
         strncpy(readString, theArray[element], MAX_STRING_LENGTH);
         printf("R \t ELEMENT: %d \t STRING: %s\n", element, readString);
         pthread_mutex_unlock(&mutex[element]);
@@ -55,7 +55,7 @@ void* ServerDecide(void *args)
     {
         GET_TIME(start);
         pthread_mutex_lock(&mutex[element]);
-        index = ++count;
+        index = count++;
         snprintf(theArray[element], MAX_STRING_LENGTH, "%s", stringToWrite);
         printf("W \t ELEMENT: %d \t STRING: %s\n", element, stringToWrite);
         pthread_mutex_unlock(&mutex[element]);
@@ -153,7 +153,7 @@ int main(int argc, char* argv[])
         printf("Socket creation failed\n");
     }
 
-    fp = fopen("results.txt", "w+");
+    fp = fopen("results/array_results.txt", "w+");
     for(int i = 0; i < MAX_THREADS; i++)
     {
         fprintf(fp, "%lf\n", times[i]);

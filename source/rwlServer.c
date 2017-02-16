@@ -61,7 +61,7 @@ void* ServerDecide(void *args)
     {
         GET_TIME(start);
         pthread_rwlock_rdlock(&rwl);
-        index = ++count;
+        index = count++;
         strncpy(readString, theArray[element], MAX_STRING_LENGTH); // Copy to buffer is safer than directly reading
         printf("R \t ELEMENT: %d \t STRING: %s\n", element, readString);
         pthread_rwlock_unlock(&rwl);
@@ -77,7 +77,7 @@ void* ServerDecide(void *args)
     {
         GET_TIME(start);
         pthread_rwlock_wrlock(&rwl);
-        index = ++count;
+        index = count++;
         strncpy(theArray[element], stringToWrite, MAX_STRING_LENGTH);
         printf("W \t ELEMENT: %d \t STRING: %s\n", element, stringToWrite);
         pthread_rwlock_unlock(&rwl);
@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
         perror("Server Socket Error");
     }
 
-    fp = fopen("results.txt", "w+");
+    fp = fopen("results/rwl_results.txt", "w+");
     for(int i = 0; i < MAX_THREADS; i++)
     {
         fprintf(fp, "%lf\n", times[i]);
