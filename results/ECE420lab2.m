@@ -9,9 +9,9 @@ hold on
 [h2, stats2] = cdfplot(X2);
 [h3, stats3] = cdfplot(X3);
 legend('mutex', 'array', 'rwl');
-Y1 = ['mutex - count:', num2str(count1), '  mean:', num2str(stats1.mean), '  median:', num2str(stats1.median), '  min:', num2str(stats1.min), '  max:', num2str(stats1.max)]
-Y2 = ['mutex - count:', num2str(count2), '  mean:', num2str(stats2.mean), '  median:', num2str(stats2.median), '  min:', num2str(stats2.min), '  max:', num2str(stats2.max)]
-Y3 = ['mutex - count:', num2str(count3), '  mean:', num2str(stats3.mean), '  median:', num2str(stats3.median), '  min:', num2str(stats3.min), '  max:', num2str(stats3.max)]
+Y1 = ['mutex - count:', num2str(count1), '  mean:', num2str(stats1.mean), '  median:', num2str(stats1.median), '  min:', num2str(stats1.min), '  max:', num2str(stats1.max)];
+Y2 = ['mutex - count:', num2str(count2), '  mean:', num2str(stats2.mean), '  median:', num2str(stats2.median), '  min:', num2str(stats2.min), '  max:', num2str(stats2.max)];
+Y3 = ['mutex - count:', num2str(count3), '  mean:', num2str(stats3.mean), '  median:', num2str(stats3.median), '  min:', num2str(stats3.min), '  max:', num2str(stats3.max)];
 disp(Y1);
 disp(Y2);
 disp(Y3);
