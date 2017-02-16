@@ -15,7 +15,6 @@ int port; //The port used to connect to the server
 int arraySize; //The size of the array held on the server
 int* seed;
 int successfulRequests;
-pthread_mutex_t mutex;
 
 void* ClientAction(void *args)
 {/*
@@ -62,10 +61,6 @@ void* ClientAction(void *args)
     
     if(connected >= 0 && clientFileDescriptor >= 0)
     {
-        pthread_mutex_lock(&mutex);
-        successfulRequests++;
-        pthread_mutex_unlock(&mutex);
-
         written = write(clientFileDescriptor, stringToWrite, MAX_STRING_LENGTH);
         itWasRead = read(clientFileDescriptor, serverResp, MAX_STRING_LENGTH);
         
@@ -136,7 +131,6 @@ int main(int argc, char* argv[])
     pthread_mutex_init(&mutex, NULL);
 
     successfulRequests = 0;
-    pthread_t t[MAX_THREADS];
 
     double start; double end;
     GET_TIME(start);
@@ -162,7 +156,7 @@ int main(int argc, char* argv[])
     }
     GET_TIME(end);
     
-    printf("EXECUTION TIME: %lf \t SUCCESSFUL REQUESTS MADE: %d / %d\n", (end - start), successfulRequests, i);
+    printf("EXECUTION TIME: %lf\n", (end - start));
 
     free(seed);
     return 0;
