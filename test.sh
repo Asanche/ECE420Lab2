@@ -16,7 +16,7 @@ Duplicates=100
 # Port Number
 port=3000
 # The number of strings in theArray
-arraysize=100
+arraysize=10
 
 
 clear
@@ -26,6 +26,6 @@ ATTEMPT=0
 while [[ $ATTEMPT -ne $Duplicates ]]; do
 	let ATTEMPT+=1
 	./client $port $arraysize
-	sleep 10
+	sleep 3
 done
 
