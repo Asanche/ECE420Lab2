@@ -11,16 +11,24 @@
 // === GLOBAL VARIABLES ===
 char** theArray; // The array of strings held in memory for the client to read or write to
 pthread_mutex_t* mutex; // The mutex that prevents race conditions b/w threads
+pthread_mutex_t fileMutex;
 int count;
 double times[MAX_THREADS];
 
 void WriteFile(){
     FILE* fp;
-    fp = fopen("results/array_results.txt", "w+");
+    fp = fopen("results/array_results.txt", "a");
+
+    if (fp == NULL)
+    {
+        fp = fopen("results/array_results.txt", "w+");
+    }
+    
     for(int i = 0; i < MAX_THREADS; i++)
     {
         fprintf(fp, "%lf\n", times[i]);
     }
+    count = 0;
     fclose(fp);
 }
 
@@ -49,12 +57,10 @@ void* ServerDecide(void *args)
 
     int element = strtol(clientString, &stringToWrite, 10);
 
-    int index;
     if(strlen(stringToWrite) == 0)
     {
         GET_TIME(start);
         pthread_mutex_lock(&mutex[element]);
-        index = count++;
         strncpy(readString, theArray[element], MAX_STRING_LENGTH);
         printf("R \t ELEMENT: %d \t STRING: %s\n", element, readString);
         pthread_mutex_unlock(&mutex[element]);
@@ -65,14 +71,17 @@ void* ServerDecide(void *args)
     {
         GET_TIME(start);
         pthread_mutex_lock(&mutex[element]);
-        index = count++;
         snprintf(theArray[element], MAX_STRING_LENGTH, "%s", stringToWrite);
         printf("W \t ELEMENT: %d \t STRING: %s\n", element, stringToWrite);
         pthread_mutex_unlock(&mutex[element]);
         GET_TIME(end);
     }
 
+    pthread_mutex_lock(&fileMutex);
+    int index = count++;
+    pthread_mutex_unlock(&fileMutex);
     times[index] = (end - start);
+
     close(clientFileDescriptor);
     pthread_exit(NULL);
 }
@@ -120,6 +129,7 @@ int main(int argc, char* argv[])
     {
         pthread_mutex_init(&mutex[i], NULL);
     }
+    pthread_mutex_init(&fileMutex, NULL);
 
     //Malloc the array
     theArray = (char**)malloc(sizeof(char*) * arraySize);

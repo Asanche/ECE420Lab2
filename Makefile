@@ -1,6 +1,11 @@
 all:clean slow fast 
 slow: client mutexServer arrayServer
 fast: client rwlServer
+test:testsh
+testsh:
+	./test.sh
+testClean:
+	rm -rf results/*.txt
 
 client: source/client.c
 	gcc -g -Wall -std=c99 source/client.c -o client -lpthread

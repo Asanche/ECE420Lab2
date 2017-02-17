@@ -11,16 +11,24 @@
 // === GLOBAL VARIABLES ===
 char** theArray; // The array of strings held in memory for the client to read or write to
 pthread_rwlock_t   rwl; // The mutex that prevents race conditions b/w threads
+pthread_mutex_t fileMutex;
 int count;
 double times[MAX_THREADS];
 
 void WriteFile(){
     FILE* fp;
-    fp = fopen("results/rwl_results.txt", "w+");
+    fp = fopen("results/rwl_results.txt", "a");
+
+    if (fp == NULL)
+    {
+        fp = fopen("results/rwl_results.txt", "w+");
+    }
+
     for(int i = 0; i < MAX_THREADS; i++)
     {
         fprintf(fp, "%lf\n", times[i]);
     }
+    count = 0;
     fclose(fp);
 }
 
@@ -38,7 +46,6 @@ void* ServerDecide(void *args)
     === PARAMETERS ===
     void* args - this is the input file from the client
     */
-
     int clientFileDescriptor = (intptr_t)args;
     double start; double end;
 
@@ -57,12 +64,10 @@ void* ServerDecide(void *args)
     int element = strtol(clientString, &stringToWriteTemp, 10);
     strncpy(stringToWrite, stringToWriteTemp, MAX_STRING_LENGTH);
 
-    int index;
     if(strlen(stringToWrite) == 0) // Read desired string
     {
         GET_TIME(start);
         pthread_rwlock_rdlock(&rwl);
-        index = count++;
         strncpy(readString, theArray[element], MAX_STRING_LENGTH); // Copy to buffer is safer than directly reading
         printf("R \t ELEMENT: %d \t STRING: %s\n", element, readString);
         pthread_rwlock_unlock(&rwl);
@@ -78,7 +83,6 @@ void* ServerDecide(void *args)
     {
         GET_TIME(start);
         pthread_rwlock_wrlock(&rwl);
-        index = count++;
         strncpy(theArray[element], stringToWrite, MAX_STRING_LENGTH);
         printf("W \t ELEMENT: %d \t STRING: %s\n", element, stringToWrite);
         pthread_rwlock_unlock(&rwl);
@@ -91,7 +95,11 @@ void* ServerDecide(void *args)
         }
     }
 
+    pthread_mutex_lock(&fileMutex);
+    int index = count++;
+    pthread_mutex_unlock(&fileMutex);
     times[index] = (end - start);
+
     close(clientFileDescriptor);
     pthread_exit(NULL);
 }
@@ -136,6 +144,7 @@ int main(int argc, char* argv[])
     sock_var.sin_family = AF_INET;
 
     pthread_rwlock_init(&rwl, NULL);
+    pthread_mutex_init(&fileMutex, NULL);
     
     //Malloc the array
     theArray = (char**)malloc(sizeof(char*) * arraySize);
@@ -157,7 +166,8 @@ int main(int argc, char* argv[])
     {
         int heard = listen(serverFileDescriptor, 2000); 
 
-        if (heard == -1) {
+        if (heard == -1) 
+        {
             perror("Server Listening Error");
         }
 
@@ -180,9 +190,14 @@ int main(int argc, char* argv[])
                 }
             }
 
+            printf("JOIN\n");
             for(int i = 0; i < MAX_THREADS; i++)
             {
-                pthread_join(t[i], NULL);
+                int joined = pthread_join(t[i], NULL);
+                if(joined == -1)
+                {
+                    perror("Server Join Error");
+                }
             }
 
             WriteFile();
