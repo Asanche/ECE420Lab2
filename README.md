@@ -22,14 +22,12 @@ can occur simultaneously, with one possible write at a time, and no reads while 
 - ** make all - makes the printing and non printing versions of the fast and slow servers
 - ** make slow - makes the slow versions of the client and server
 - ** make fast - makes the fast versions of the client and server
-======================================
-
+-----------------
 - \* make client - makes the client binary
 - \* make rwlServer - makes server that uses a read write lock
 - \* make arrayServer - makes server that has an array of mutexes (one per element)
 - \* make mutexServer - makes server that has single mutex
-======================================
-
+------------------
 - make clean - removes executables, binaries, compressed folders
 - make zip - makes a zip of the required submission files
 - make test - clears results and runs test.sh
