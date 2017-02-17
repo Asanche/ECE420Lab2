@@ -190,7 +190,6 @@ int main(int argc, char* argv[])
                 }
             }
 
-            printf("JOIN\n");
             for(int i = 0; i < MAX_THREADS; i++)
             {
                 int joined = pthread_join(t[i], NULL);

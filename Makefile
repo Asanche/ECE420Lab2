@@ -1,7 +1,7 @@
 all:clean slow fast 
 slow: client mutexServer arrayServer
 fast: client rwlServer
-test:testsh
+test: testClean testsh
 testsh:
 	./test.sh
 testClean:
