@@ -20,7 +20,7 @@ arrayServer: source/arrayServer.c
 	gcc -g -Wall -std=c99 source/arrayServer.c -o arrayServer -lpthread
 
 zip: readme.txt members.txt Makefile client.c server.c service.h
-	zip 1393331-H42.zip readme.txt members.txt Makefile soure/client.c source/server.c source/service.h source/timer.h
+	zip 1393331-H42.zip source/readme.txt members.txt Makefile soure/client.c source/server.c source/service.h source/timer.h
 
 clean:
 	rm -rf *.o *.exe *.zip
