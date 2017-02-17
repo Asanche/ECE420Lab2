@@ -18,6 +18,7 @@ can occur simultaneously, with one possible write at a time, and no reads while 
 ####COMPILATION
 * "**" denotes general purpose compilation of a group of files - TAs Use these Please
 * "*" denotes commands used specifically for the purpose of the lab.
+
 ##### Make commands 
 - ** make all - makes the printing and non printing versions of the fast and slow servers
 - ** make slow - makes the slow versions of the client and server
