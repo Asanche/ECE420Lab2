@@ -3,17 +3,19 @@
     The server simply listens for client requests that are either
     read or write, and either reads or writes to an element
     in the array of strings that it holds specified by the 
-    client
+    client. Access to theArray is controlled by a readWritelock.
+    The rwl allows infinite concurrent readers, but mutexes around a single writer.
+    If there are readers waiting to read, the writer will wait to write to 
+    theArray. Only one writer can write at a time.
 */
 #include "service.h"
-#define WRITE_SUCcESS "String sucessfully written to array."
 
 // === GLOBAL VARIABLES ===
 char** theArray; // The array of strings held in memory for the client to read or write to
 pthread_rwlock_t   rwl; // The mutex that prevents race conditions b/w threads
-pthread_mutex_t fileMutex;
-int count;
-double times[MAX_THREADS];
+pthread_mutex_t fileMutex; // controls access to the count variable below
+int count; // Helps threads wrote to times
+double times[MAX_THREADS]; // Execution times to be writte (one per thread)
 
 void WriteFile(){
     FILE* fp;

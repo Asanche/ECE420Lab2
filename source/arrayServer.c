@@ -3,17 +3,18 @@
     The server simply listens for client requests that are either
     read or write, and either reads or writes to an element
     in the array of strings that it holds specified by the 
-    client
+    client. Access to theArray is handled on a per element basis
+    with an array of mutexes identical in length to theArray.
 */
 #include "service.h"
 #include <semaphore.h>
 
 // === GLOBAL VARIABLES ===
 char** theArray; // The array of strings held in memory for the client to read or write to
-pthread_mutex_t* mutex; // The mutex that prevents race conditions b/w threads
-pthread_mutex_t fileMutex;
-int count;
-double times[MAX_THREADS];
+pthread_mutex_t* mutex; // The mutex that prevents race conditions b/w threads (one per array element)
+pthread_mutex_t fileMutex; // controls access to the count variable below
+int count; // Helps threads wrote to times
+double times[MAX_THREADS]; // Execution times to be writte (one per thread)
 
 void WriteFile(){
     FILE* fp;
